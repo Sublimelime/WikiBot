@@ -5,3 +5,5 @@ authors = ["Noah Morton <noahmorton98@gmail.com>"]
 
 [dependencies]
 serenity = "0.3.0"
+Inflector = "0.10.1"
+rand = "0.3.16"
