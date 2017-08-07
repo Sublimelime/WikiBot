@@ -1,0 +1,7 @@
+[package]
+name = "wikibot"
+version = "0.1.0"
+authors = ["Noah Morton <noahmorton98@gmail.com>"]
+
+[dependencies]
+serenity = "0.3.0"
