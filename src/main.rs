@@ -36,25 +36,34 @@ fn main() {
                     .owners(vec![UserId(152193207726243840)].into_iter().collect()) //setup author to be owner
 
                     )
+            // META GROUP -------------------------
+            .group("Meta", |g| g
             .command("ping", |c|
                      c.desc("Replies to the ping with a message. Used to check if the bot is working.")
                      .max_args(0)
                      .exec(ping))
             .command("info", |c|
                      c.desc("Prints out info about the bot.")
-                     .known_as("about")
+                     .batch_known_as(vec!["about", "what", "?"])
                      .exec(info))
-            .command("help", |c| c.exec_help(help_commands::with_embeds))
+            .command("help", |c| c.exec_help(help_commands::with_embeds)))
+
+            // WIKI GROUP -------------------------
+            .group("Wiki", |g| g
             .command("page", |c|
                      c.desc("Takes a page name, and prints out a link to the wiki of that page.")
                      .min_args(1)
-                     .usage("\nPass it a page name, such as iron plate. It'll return a link.")
+                     .known_as("link")
+                     .usage("\nPass it a page name, such as iron plate. It'll return a link.
+                            \nIf you wish to keep talking after this command, use two pipes || to end the command and begin your chat.")
                      .example("iron plate")
                      .help_available(true)
                      .exec(page))
+
+           )
     });
 
-    println!("Bot configured, with prefix {}, now running...", PREFIX);
+    println!("Bot configured with prefix {}, now running...", PREFIX);
 
     let _ = client.start(); //Start bot
 }

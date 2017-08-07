@@ -22,12 +22,20 @@ command!(info(_context, message) {
     let _ = message.reply(&reply[..]);
 });
 
+
 command!(page(_context, message) {
     let mut final_message = String::from("https://wiki.factorio.com/");
-    let modified_content = message.content_safe().replace("page ", "").replace(::PREFIX,"");
+
+    // Remove command from message
+    let mut modified_content = message.content_safe().replace("page ", "").replace(::PREFIX,"");
+
+    // Truncate message to ||
+    if let Some(index) = modified_content.find(" ||") {
+        modified_content.truncate(index as usize);
+    }
 
     // Remove command from message content, and code-ify it
-    let modified_content = modified_content.clone().to_sentence_case().replace(" ", "_");
+    modified_content = modified_content.replace(" ", "_");
 
     final_message.push_str(&modified_content[..]); //add the specified page to the end
 
