@@ -22,7 +22,6 @@ command!(info(_context, message) {
     let _ = message.reply(&reply[..]);
 });
 
-
 command!(page(_context, message) {
     let mut final_message = String::from("https://wiki.factorio.com/");
 
@@ -43,4 +42,16 @@ command!(page(_context, message) {
     if let Err(error) = message.channel_id.say(&final_message[..]) {
         println!("[Error] Unable to send reply message for page command. Error is {}", error);
     }
+});
+
+command!(ratios(_context, message) {
+
+});
+
+command!(ratio_add(_context, message) {
+
+});
+
+command!(ratio_get(_context, message) {
+
 });
