@@ -40,14 +40,31 @@ command!(page(_context, message) {
     final_message.push_str(&modified_content[..]); //add the specified page to the end
 
     // Post link back into chat
-    say_into_chat(message, &final_message[..]);
+    say_into_chat(&message, &final_message[..]);
 });
 
 /// Prints out a grand list of all current stored ratios.
 command!(ratios(_context, message) {
     let parsed_json = get_ratio_json();
 
-    println!("{:?}", parsed_json["code"].as_number().unwrap().as_parts().1);
+    for entry in parsed_json.entries() {
+        //Destructure the tuple to make matching the value easier
+        let (ref key, value) = entry;
+
+        //figure out what type of object the value is
+        use self::json::JsonValue::*;
+
+        match value {
+            &Short(short) => {
+
+            }
+            &Number(num) => {
+
+            }
+            _ => panic!("Found unhandled entry type.")
+        }
+    }
+
 });
 
 /// Adds a ratio to the list of current ratios.

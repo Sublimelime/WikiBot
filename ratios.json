@@ -1,11 +1,6 @@
 {
     "code": 200,
-    "success": true,
-    "payload": {
-        "features": [
-            "awesome",
-            "easyAPI",
-            "lowLearningCurve"
-        ]
-    }
+    "steam": "1:2:3",
+    "nuclear": "10:20:30",
+    "something": "1:2:4:8"
 }
