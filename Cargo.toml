@@ -7,3 +7,5 @@ authors = ["Noah Morton <noahmorton98@gmail.com>"]
 serenity = "0.3.0"
 Inflector = "0.10.1"
 rand = "0.3.16"
+regex = "0.2.2"
+json = "0.11.9"

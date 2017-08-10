@@ -66,6 +66,11 @@ fn main() {
                             .max_args(0)
                             .help_available(true)
                             .exec(ratios))
+                   .command("modapi", |c|
+                            c.desc("Takes a link, and creates an embed detailing the linked field.")
+                            .min_args(1)
+                            .help_available(true)
+                            .exec(modapi))
                   )
             // RATIOS GROUP --------------------------
             .group("Ratios", |g| g

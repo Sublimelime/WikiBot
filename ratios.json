@@ -1,0 +1,11 @@
+{
+    "code": 200,
+    "success": true,
+    "payload": {
+        "features": [
+            "awesome",
+            "easyAPI",
+            "lowLearningCurve"
+        ]
+    }
+}
