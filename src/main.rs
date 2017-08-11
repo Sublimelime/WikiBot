@@ -37,16 +37,18 @@ fn main() {
     is_powerful_perms.insert(Permissions::from_bits_truncate(0x10000000));
 
     client.with_framework(move |f| {
-        f.configure(|c|
-                    c.prefix(PREFIX) // set the bot's prefix to prefix declared as global
-                    .ignore_bots(true) //Ignore other bots
-                    .ignore_webhooks(true)
-                    .allow_dm(true)
-                    .allow_whitespace(true)
-                    .on_mention(true) // Allow mentioning the bot to use commands
-                    .owners(vec![UserId(152193207726243840)].into_iter().collect()) //setup author to be owner
+        f.simple_bucket("slowly", 5).simple_bucket("super-slowly", 10)
 
-                   )
+            .configure(|c|
+                       c.prefix(PREFIX) // set the bot's prefix to prefix declared as global
+                       .ignore_bots(true) //Ignore other bots
+                       .ignore_webhooks(true)
+                       .allow_dm(true)
+                       .allow_whitespace(true)
+                       .on_mention(true) // Allow mentioning the bot to use commands
+                       .owners(vec![UserId(152193207726243840)].into_iter().collect()) //setup author to be owner
+
+                      )
             // META GROUP -------------------------
             .group("Meta", |g| g
                    .command("ping", |c|
@@ -56,6 +58,15 @@ fn main() {
                             c.desc("Prints out info about the bot.")
                             .batch_known_as(vec!["about", "what", "?"])
                             .exec(info))
+                   .command("uptime", |c| c
+                            .desc("Prints out info about the bot's uptime, and system status.")
+                            .known_as("status")
+                            .bucket("slowly")
+                            .exec(uptime))
+                   .command("host", |c| c
+                            .desc("Prints out info about the host's uptime, and system info.")
+                            .bucket("super-slowly")
+                            .exec(host))
                    .command("help", |c| c.exec_help(help_commands::with_embeds)))
 
             // WIKI GROUP -------------------------
@@ -71,11 +82,8 @@ fn main() {
                    .command("ratios", |c|
                             c.desc("Returns a list of all registered ratios.")
                             .help_available(true)
+                            .bucket("super-slowly")
                             .exec(ratios))
-                   .command("modapi", |c|
-                            c.desc("Takes a link, and creates an embed detailing the linked field.")
-                            .help_available(true)
-                            .exec(modapi))
                   )
             // RATIOS GROUP --------------------------
             .group("Ratios", |g| g
@@ -88,6 +96,7 @@ fn main() {
                             .max_args(2)
                             .required_permissions(is_powerful_perms)
                             .example("\"name\" \"1:2:3\"")
+                            .help_available(true)
                             .usage("\"name\" \"ratio\"")
                             .exec(ratio_add))
 
@@ -98,11 +107,13 @@ fn main() {
                             .min_args(1)
                             .example("steam")
                             .usage("name")
+                            .help_available(true)
                             .exec(ratio_get))
                    .command("delete", |c| c
                             .desc("Deletes a ratio. Can only be used by moderators.")
                             .min_args(1)
                             .example("steam")
+                            .help_available(true)
                             .required_permissions(is_powerful_perms)
                             .usage("name")
                             .exec(ratio_delete))
@@ -110,26 +121,35 @@ fn main() {
                             .desc("Deletes all ratios. Can only be used by moderators.")
                             .known_as("clear")
                             .required_permissions(is_powerful_perms)
+                            .help_available(true)
                             .exec(ratio_deleteall))
                    .command("set", |c| c
                             .desc("Sets an existant ratio to a different value. Can only be used by moderators.")
                             .min_args(2)
                             .max_args(2)
+                            .help_available(true)
                             .use_quotes(true)
                             .example("\"steam\" \"1:2:3\"")
                             .required_permissions(is_powerful_perms)
                             .usage("\"name\" \"new value\"")
                             .exec(ratio_set))
-                  )
-            .on_dispatch_error(|_ctx, msg, error| {
-                if let DispatchError::RateLimited(seconds) = error {
-                    say_into_chat(&msg, &format!("Try this again in {} seconds.", seconds));
-                }
-            })
+                   )
+                   .on_dispatch_error(|_ctx, msg, error| {
+                       if let DispatchError::RateLimited(seconds) = error {
+                           println!("Bot is being rate limited.");
+                           say_into_chat(&msg, format!("Try this again in {} seconds.", seconds).as_str());
+                       } else if let DispatchError::LackOfPermissions(_) = error {
+                           say_into_chat(&msg, format!("Sorry, you don't have permission to do that.").as_str());
+                       } else {
+                           println!("Got unknown dispatch error");
+                       }
+                   })
         .before(|_, msg, command_name| {
-            println!("Got command '{}' by user '{}'",
+            // Print info about the command use into log
+            println!("Got command '{}' by user '{}#{}'",
                      command_name,
-                     msg.author.name);
+                     msg.author.name,
+                     msg.author.discriminator);
             true
         })
     });

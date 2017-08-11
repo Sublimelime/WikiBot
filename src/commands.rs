@@ -6,22 +6,25 @@ extern crate json;
 
 use self::json::*;
 use self::rand::Rng;
+use std::process::Command;
 use self::serenity::model::Message;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 
+/// Your standard ping command, replies with random replies
 command!(ping(_context, message) {
     let replies = ["Pong!", "Marco!", "Roger!", "I hear ya!",
     "Good day.", "Hello!", "What's up?","I'm alive!",
     "Hearing you loud and clear.","PiNg!", "Yep, still here.",
     "Nah, totally offline.", "Sup?", "What's a bot gotta do to get some sleep around here?",
     "Running.", "Uptime is my prime focus.", "It... It's not like I wanted to be pinged by you... :blush:",
-    "!gniP", "*Snore* :zzz:"];
+    "!gniP", "*Snore* :zzz:", "Cheers!", "Yes?"];
     let random = rand::thread_rng().gen_range(0, replies.len());
 
     let _ = message.reply(replies[random]);
 });
 
+/// Prints various info about the bot itself.
 command!(info(_context, message) {
     let mut reply = String::from("Author: Gangsir\nDesc: A simple bot that fetches information related to factorio.\nFor help, use ");
     reply.push_str(::PREFIX);
@@ -29,6 +32,30 @@ command!(info(_context, message) {
     let _ = message.reply(&reply[..]);
 });
 
+/// Prints current system status, including uptime
+/// of the bot into chat.
+command!(uptime(_context, message) {
+    if let Ok(result) = Command::new("uptime").output() {
+        let _ = message.reply(String::from_utf8(result.stdout).unwrap().as_str());
+    } else {
+        println!("Unable to run uptime command.")
+    }
+});
+
+/// Prints data about the host into the chat.
+command!(host(_context, message) {
+    use std::env::consts::*;
+    let mut uptime = String::new();
+
+    if let Ok(result) = Command::new("uptime").arg("-p").output() {
+        uptime = String::from_utf8(result.stdout).unwrap();
+    } else {
+        println!("Unable to run uptime command.")
+    }
+    let _ = message.reply(format!("Host OS: {}\nHost Arch: {}\nCurrent uptime: {}", OS, ARCH, uptime).as_str());
+});
+
+/// Links a page on the wiki.
 command!(page(_context, message) {
     let mut final_message = String::from("https://wiki.factorio.com/");
 
@@ -46,12 +73,6 @@ command!(page(_context, message) {
 
     // Post link back into chat
     say_into_chat(&message, &final_message[..]);
-});
-
-
-/// Returns info about a specified function or field of the mod api.
-command!(modapi(_context, message) {
-
 });
 
 // Functions -----------------
