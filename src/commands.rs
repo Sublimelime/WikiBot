@@ -9,6 +9,7 @@ use self::rand::Rng;
 use std::process::Command;
 use self::serenity::model::Message;
 use std::fs::{File, OpenOptions};
+use std::fmt::Display;
 use std::io::prelude::*;
 
 /// Your standard ping command, replies with random replies
@@ -72,20 +73,22 @@ command!(page(_context, message) {
     final_message.push_str(&modified_content[..]); //add the specified page to the end
 
     // Post link back into chat
-    say_into_chat(&message, &final_message[..]);
+    say_into_chat(&message, final_message);
 });
 
 // Functions -----------------
 
 /// Says a message into chat. Takes the Message object of the event,
 /// and a str to say.
-pub fn say_into_chat(message: &Message, speech: &str) {
-    if let Err(error) = message.channel_id.say(speech) {
+pub fn say_into_chat<T>(message: &Message, speech: T)
+    where T: Display
+{
+    if let Err(error) = message.channel_id.say(format!("{}",speech).as_str()) {
         println!(
             "[Error] Unable to send reply message: {}. Error is {}",
             speech,
             error
-        );
+            );
     }
 }
 
@@ -110,7 +113,7 @@ pub fn get_ratio_json() -> JsonValue {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(
         "Something went wrong reading the ratios file.",
-    );
+        );
 
     let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -131,7 +134,7 @@ pub fn write_ratio_json(value: JsonValue) {
         println!(
             "Error writing to json file, aborting with error: {:?}",
             error
-        );
+            );
     }
 }
 
@@ -147,7 +150,7 @@ mod tests {
         let result = fix_message(
             String::from("+command arg || Some random chat text"),
             "command ",
-        );
+            );
         assert_eq!(result, "arg");
     }
 }

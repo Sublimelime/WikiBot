@@ -137,9 +137,9 @@ fn main() {
                    .on_dispatch_error(|_ctx, msg, error| {
                        if let DispatchError::RateLimited(seconds) = error {
                            println!("Bot is being rate limited.");
-                           say_into_chat(&msg, format!("Try this again in {} seconds.", seconds).as_str());
+                           say_into_chat(&msg, format!("Try this again in {} seconds.", seconds));
                        } else if let DispatchError::LackOfPermissions(_) = error {
-                           say_into_chat(&msg, format!("Sorry, you don't have permission to do that.").as_str());
+                           say_into_chat(&msg, "Sorry, you don't have permission to do that.");
                        } else {
                            println!("Got unknown dispatch error");
                        }
