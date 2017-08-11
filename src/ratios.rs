@@ -26,7 +26,7 @@ command!(ratios(_context, message) {
     }
 
     //Send the message with embed
-    let _ = message.channel_id.send_message(|a| a
+    let result = message.channel_id.send_message(|a| a
                                             .content("List of all registered ratios:")
                                             .embed(|b| b
                                                    .field(|c| c.name("List:").value(&embed_content[..]))
@@ -36,6 +36,10 @@ command!(ratios(_context, message) {
                                                           )
                                                    .color(Colour::from_rgb(100,200,100))
                                                   ));
+    if let Err(error) = result {
+        println!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump());
+        say_into_chat(&message, "Failed to get ratio list. Either something went wrong, or no ratios are defined.");
+    }
 });
 
 /// Adds a ratio to the list of current ratios.
