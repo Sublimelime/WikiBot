@@ -33,7 +33,13 @@ command!(page(_context, message) {
     let mut final_message = String::from("https://wiki.factorio.com/");
 
     // Remove command from message content, and code-ify it
-    let mut modified_content = fix_message(message.content_safe(), "page ");
+    let mut modified_content = String::new();
+    if message.content_safe().starts_with(format!("{}page", ::PREFIX).as_str()) {
+        modified_content = fix_message(message.content_safe(), "page ");
+    } else if message.content_safe().starts_with(format!("{}link", ::PREFIX).as_str()) {
+        modified_content = fix_message(message.content_safe(), "link ");
+    }
+
     modified_content = modified_content.replace(" ", "_");
 
     final_message.push_str(&modified_content[..]); //add the specified page to the end

@@ -99,6 +99,27 @@ fn main() {
                             .example("steam")
                             .usage("name")
                             .exec(ratio_get))
+                   .command("delete", |c| c
+                            .desc("Deletes a ratio. Can only be used by moderators.")
+                            .min_args(1)
+                            .example("steam")
+                            .required_permissions(is_powerful_perms)
+                            .usage("name")
+                            .exec(ratio_delete))
+                   .command("deleteall", |c| c
+                            .desc("Deletes all ratios. Can only be used by moderators.")
+                            .known_as("clear")
+                            .required_permissions(is_powerful_perms)
+                            .exec(ratio_deleteall))
+                   .command("set", |c| c
+                            .desc("Sets an existant ratio to a different value. Can only be used by moderators.")
+                            .min_args(2)
+                            .max_args(2)
+                            .use_quotes(true)
+                            .example("\"steam\" \"1:2:3\"")
+                            .required_permissions(is_powerful_perms)
+                            .usage("\"name\" \"new value\"")
+                            .exec(ratio_set))
                   )
             .on_dispatch_error(|_ctx, msg, error| {
                 if let DispatchError::RateLimited(seconds) = error {
