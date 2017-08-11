@@ -58,7 +58,7 @@ pub fn say_into_chat(message: &Message, speech: &str) {
             "[Error] Unable to send reply message: {}. Error is {}",
             speech,
             error
-            );
+        );
     }
 }
 
@@ -83,7 +83,7 @@ pub fn get_ratio_json() -> JsonValue {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(
         "Something went wrong reading the ratios file.",
-        );
+    );
 
     let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -98,7 +98,10 @@ mod tests {
         let result = fix_message(String::from("+command This is a test message"), "command ");
         assert_eq!(result, "This is a test message");
 
-        let result = fix_message(String::from("+command arg || Some random chat text"), "command ");
+        let result = fix_message(
+            String::from("+command arg || Some random chat text"),
+            "command ",
+        );
         assert_eq!(result, "arg");
     }
 }
