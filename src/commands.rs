@@ -58,7 +58,7 @@ pub fn say_into_chat(message: &Message, speech: &str) {
             "[Error] Unable to send reply message: {}. Error is {}",
             speech,
             error
-            );
+        );
     }
 }
 
@@ -83,7 +83,7 @@ pub fn get_ratio_json() -> JsonValue {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(
         "Something went wrong reading the ratios file.",
-        );
+    );
 
     let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -93,11 +93,18 @@ pub fn get_ratio_json() -> JsonValue {
 ///Takes a JsonValue, and writes it to the ratios file.
 pub fn write_ratio_json(value: JsonValue) {
     // Open the json file for writing, nuking any previous contents
-    let mut file = OpenOptions::new().write(true).truncate(true).open("ratios.json").expect("Unable to open json file for writing.");
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open("ratios.json")
+        .expect("Unable to open json file for writing.");
 
     // Write json to file
     if let Err(error) = value.write(&mut file) {
-        println!("Error writing to json file, aborting with error: {:?}", error);
+        println!(
+            "Error writing to json file, aborting with error: {:?}",
+            error
+        );
     }
 }
 
@@ -113,7 +120,7 @@ mod tests {
         let result = fix_message(
             String::from("+command arg || Some random chat text"),
             "command ",
-            );
+        );
         assert_eq!(result, "arg");
     }
 }
