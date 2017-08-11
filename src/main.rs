@@ -9,7 +9,9 @@ use serenity::model::UserId;
 use serenity::framework::help_commands;
 
 mod commands;
+mod ratios;
 use commands::*;
+use ratios::*;
 
 // Global config vars
 pub const PREFIX: &'static str = "+";
@@ -21,7 +23,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-        );
+    );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
