@@ -10,6 +10,7 @@ use serenity::framework::{help_commands, DispatchError};
 
 mod commands;
 mod ratios;
+mod levenshtein;
 use commands::*;
 use ratios::*;
 

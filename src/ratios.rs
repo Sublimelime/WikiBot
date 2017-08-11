@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use commands::*;
+use levenshtein::*;
 
 /// Prints out a grand list of all current stored ratios.
 command!(ratios(_context, message) {
@@ -40,17 +41,45 @@ command!(ratios(_context, message) {
 /// Can only be used by moderators.
 command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
-    if !message.content_safe().contains("\"") {
+    if message.content_safe().matches("\"").count() < 4 {
         say_into_chat(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help ratio add``` for info on how to format this command.", ::PREFIX).as_str());
     } else {
         let mut parsed_json = get_ratio_json();
 
+        if !parsed_json.has_key(name.as_str()) {
+
+        // Add the entry to the json
+        parsed_json[name.clone()] = ratio.clone().into();
+
+        // Write it back to the file
+        write_ratio_json(parsed_json);
+
+        say_into_chat(&message, format!("Success, added ratio {} for concept {}.", ratio, name).as_str());
+        } else {
+            say_into_chat(&message, "Cannot add, dictionary already contains an entry for that name. Try using ```ratio set``` instead, or removing it.");
+        }
     }
 });
 
 /// Retrieves a ratio from the storage of the bot.
-command!(ratio_get(_context, message, _args, ratio: String) {
+command!(ratio_get(_context, message) {
     let parsed_json = get_ratio_json();
+    let request = fix_message(message.content_safe(), "ratio get ");
 
+    // Key is not found, do a levenshtein search to see if they made a typo
+    if !parsed_json.has_key(request.as_str()) {
+        let mut possiblities: Vec<&str> = Vec::new();
+
+        for entry in parsed_json.entries() {
+            let (key, _value) = entry;
+            if levenshtein(key, request.as_str()) < 5 {
+                possiblities.push(key);
+            }
+        }
+        say_into_chat(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{:#?}", request, possiblities).as_str());
+    } else { // Key is found literally
+       // Build message
+       say_into_chat(&message, format!("Ratio for {}:\n{}", request, parsed_json[&request].as_str().unwrap()).as_str());
+    }
 });
