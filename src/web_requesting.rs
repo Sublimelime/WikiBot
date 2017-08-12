@@ -10,8 +10,7 @@ use self::atom_syndication::Feed;
 use self::serenity::model::Message;
 use self::serenity::utils::Colour;
 use self::serenity::Error;
-use self::reqwest::*;
-use std::io::BufReader;
+use std::io::{BufReader, Read};
 
 /// Requests a link to the newest FFF posted by the devs.
 command!(fff(_context, msg) {
@@ -31,26 +30,36 @@ command!(fff(_context, msg) {
                 let reader = BufReader::new(response);
                 // Parse the RSS
                 if let Ok(feed) = Feed::read_from(reader) {
+
+                    // Data about the entry
                     let latest_entry = feed.entries().first().unwrap();
                     let update_time = latest_entry.updated();
+
                     if let Some(link) = latest_entry.links().first() {
                         // Make embed to show results
-                        if let Err(error) = send_fff_embed(&message, update_time, link.href()) {
+                        let link = link.href();
+
+                        // Pull number off of the last three digits of the url
+                        let number: u32 = link[link.len() - 3 ..].parse().unwrap();
+
+                        // Send the FFF embed detailing it
+                        if let Err(error) = send_fff_embed(&message, update_time, link, number) {
                             println!("Got error sending embed for fff results, {}", error);
                             reply_into_chat(&message, "Sorry, I was unable to send the results as an embed. Instead, have them plain:");
-                            say_into_chat(&message, format!("Latest FFF as of roughly {}:\n{}", update_time, link.href()).as_str());
+                            say_into_chat(&message, format!("Latest FFF as of roughly {}:\n{}", update_time, link).as_str());
                         }
+
                     } else {
-                        reply_into_chat(&message, fail_message_rss);
+                        let _ = send_error_embed(&message, fail_message_rss);
                     }
                 } else {
-                    reply_into_chat(&message, fail_message_rss);
+                    let _ = send_error_embed(&message, fail_message_rss);
                 }
             } else {
-                reply_into_chat(&message, fail_message);
+                let _ = send_error_embed(&message, fail_message);
             }
         } else {
-            reply_into_chat(&message, fail_message);
+            let _ = send_error_embed(&message, fail_message);
         }
     });
 });
@@ -65,23 +74,70 @@ command!(version(_context, msg) {
     // can't be passed to the closure
     let message = msg.clone();
     let _ = thread::spawn(move || {
-        // Make client to do our two requests with
-        let client = Client::new().unwrap();
+        // Vars to hold the results
+        let mut latest_stable = String::new();
+        let mut latest_experimental = String::new();
 
-
+        // Make request
+        if let Ok(mut response) = reqwest::get("https://factorio.com") {
+            if response.status().is_success() {
+                let mut html = String::new();
+                response.read_to_string(&mut html).unwrap();
+                // Horrible hack to find latest version
+                // FIXME: Ask hanziq about getting latest versions without auth
+                if let Some(loc) = html.find("Stable:") {
+                    latest_stable = html[loc+8..loc+15].to_owned();
+                }
+                if let Some(loc) = html.find("Experimental:") {
+                    latest_experimental = html[loc+14..loc+21].to_owned();
+                }
+            } else {
+                say_into_chat(&message, fail_message);
+            }
+        } else {
+            say_into_chat(&message, fail_message);
+        }
+        if !latest_stable.is_empty() && !latest_experimental.is_empty() {
+            if let Err(_) = send_version_embed(&message, &latest_stable, &latest_experimental) {
+                say_into_chat(&message, format!("I got a result, but was unable to send an embed of the results.
+                              \nInstead, have them plain:\n Latest Stable: {}\nLatest experimental: {}", latest_stable, latest_experimental));
+            }
+        } else {
+            say_into_chat(&message, fail_message);
+        }
     });
 });
 
+/// Sends an embed that details the latest stable and experimental versions
+fn send_version_embed(message: &Message, stable: &String, experimental: &String) -> Result<Message, Error> {
+    message.channel_id.send_message(|a| {
+        a.embed(|e| {
+            e.description("Latest version:")
+                .field(|f| {
+                    f.name("Stable").value(stable.as_str())
+                })
+                .field(|f| {
+                    f.name("Experimental").value(experimental.as_str())
+                })
+            .timestamp(message.timestamp.to_rfc3339())
+            .color(Colour::from_rgb(200, 100, 10))
+        })
+    })
+}
 
 /// Sends the result of the RSS get in an embed. Extracted for code simplicity.
-fn send_fff_embed(message: &Message, update_time: &str, link: &str) -> Result<Message, Error> {
+fn send_fff_embed(message: &Message, update_time: &str, link: &str, number: u32) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("FFF Results:")
                 .field(|f| {
-                    f.name(format_rss_time(update_time).as_str()).value(link)
+                    f.name(format!("{}: #{}",
+                                   format_rss_time(update_time).as_str(),
+                                   number
+                                   ).as_str())
+                        .value(link)
                 })
-                .timestamp(message.timestamp.to_rfc3339())
+            .timestamp(message.timestamp.to_rfc3339())
                 .color(Colour::from_rgb(200, 100, 10))
         })
     })
