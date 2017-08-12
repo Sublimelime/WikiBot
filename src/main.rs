@@ -38,7 +38,9 @@ fn main() {
     is_powerful_perms.insert(Permissions::from_bits_truncate(0x10000000));
 
     client.with_framework(move |f| {
-        f.simple_bucket("slowly", 5).simple_bucket("super-slowly", 10)
+        f.simple_bucket("slowly", 5)
+            .simple_bucket("super-slowly", 10)
+            .simple_bucket("occasionally", 30)
 
             .configure(|c|
                        c.prefix(PREFIX) // set the bot's prefix to prefix declared as global
@@ -85,6 +87,12 @@ fn main() {
                             .help_available(true)
                             .bucket("super-slowly")
                             .exec(ratios))
+                   .command("fff", |c| c
+                            .desc("Returns a link to the newest FFF.")
+                            .help_available(true)
+                            .known_as("blog")
+                            .bucket("occasionally")
+                            .exec(fff))
                   )
             // RATIOS GROUP --------------------------
             .group("Ratios", |g| g

@@ -1,11 +1,18 @@
 [package]
 name = "wikibot"
 version = "0.1.0"
+publish = false
 authors = ["Noah Morton <noahmorton98@gmail.com>"]
+
+[profile.release]
+debug = false
+opt-level = 3
 
 [dependencies]
 serenity = "0.3.0"
 rand = "0.3.16"
 json = "0.11.9"
-hyper = "0.11.2"
-rss = "0.7.0"
+
+[dependencies.rss]
+version = "0.7.0"
+features = ["from_url"]

@@ -6,6 +6,7 @@ use self::json::JsonValue;
 use self::serenity::utils::Colour;
 
 use commands::*;
+use std::fs::OpenOptions;
 use levenshtein::*;
 
 /// Prints out a grand list of all current stored ratios.
@@ -24,15 +25,15 @@ command!(ratios(_context, message) {
 
     //Send the message with embed
     let result = message.channel_id.send_message(|a| a
-                                            .content("List of all registered ratios:")
-                                            .embed(|b| b
-                                                   .field(|c| c.name("List:").value(&embed_content[..]))
-                                                   .author(|d| d
-                                                           .name("WikiBot")
-                                                           .url("https://bitbucket.com/Gangsir")
-                                                          )
-                                                   .color(Colour::from_rgb(100,200,100))
-                                                  ));
+                                                 .content("List of all registered ratios:")
+                                                 .embed(|b| b
+                                                        .field(|c| c.name("List:").value(&embed_content[..]))
+                                                        .author(|d| d
+                                                                .name("WikiBot")
+                                                                .url("https://bitbucket.com/Gangsir")
+                                                               )
+                                                        .color(Colour::from_rgb(100,200,100))
+                                                       ));
     if let Err(error) = result {
         println!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump());
         say_into_chat(&message, "Failed to get ratio list. Either something went wrong, or no ratios are defined.");
@@ -135,3 +136,22 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
         }
     }
 });
+
+///Takes a JsonValue, and writes it to the ratios file.
+pub fn write_ratio_json(value: JsonValue) {
+    // Open the json file for writing, nuking any previous contents
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open("ratios.json")
+        .expect("Unable to open json file for writing.");
+
+    // Write json to file
+    if let Err(error) = value.write(&mut file) {
+        println!(
+            "Error writing to json file,
+            aborting with error: {:?}",
+            error
+        );
+    }
+}

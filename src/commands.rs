@@ -27,7 +27,7 @@ command!(ping(_context, message) {
 
 /// Prints various info about the bot itself.
 command!(info(_context, message) {
-    let mut reply = String::from("Author: Gangsir\nDesc: A simple bot that fetches information related to factorio.\nFor help, use ");
+    let mut reply = String::from("Author: Gangsir\nDesc: A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
     reply.push_str(::PREFIX);
     reply.push_str("help. Thanks, and enjoy!");
     let _ = message.reply(&reply[..]);
@@ -124,24 +124,6 @@ pub fn get_ratio_json() -> JsonValue {
     let data = data.trim(); //Remove the newline from the end of the string if present
 
     json::parse(data).expect("Unable to parse json from ratios file.")
-}
-
-///Takes a JsonValue, and writes it to the ratios file.
-pub fn write_ratio_json(value: JsonValue) {
-    // Open the json file for writing, nuking any previous contents
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open("ratios.json")
-        .expect("Unable to open json file for writing.");
-
-    // Write json to file
-    if let Err(error) = value.write(&mut file) {
-        println!(
-            "Error writing to json file, aborting with error: {:?}",
-            error
-        );
-    }
 }
 
 
