@@ -8,6 +8,7 @@ use self::json::*;
 use self::rand::Rng;
 use std::process::Command;
 use self::serenity::model::Message;
+use self::serenity::utils::Colour;
 use std::fs::{File, OpenOptions};
 use std::fmt::Display;
 use std::io::prelude::*;
@@ -22,22 +23,23 @@ command!(ping(_context, message) {
     "!gniP", "*Snore* :zzz:", "Cheers!", "Yes?"];
     let random = rand::thread_rng().gen_range(0, replies.len());
 
-    let _ = message.reply(replies[random]);
+    reply_into_chat(&message, replies[random]);
 });
 
 /// Prints various info about the bot itself.
 command!(info(_context, message) {
     let mut reply = String::from("Author: Gangsir\nDesc: A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
     reply.push_str(::PREFIX);
-    reply.push_str("help. Thanks, and enjoy!");
-    let _ = message.reply(&reply[..]);
+    reply.push_str("help. All commands that do not take arguments support talking after the commands with ||, commands that take arguments support it if it says so in help.
+                   \nThanks, and enjoy! For info about the host of this bot, run the `host` command.");
+    reply_into_chat(&message, reply);
 });
 
 /// Prints current system status, including uptime
 /// of the bot into chat.
 command!(uptime(_context, message) {
     if let Ok(result) = Command::new("uptime").output() {
-        let _ = message.reply(String::from_utf8(result.stdout).unwrap().as_str());
+        reply_into_chat(&message, String::from_utf8(result.stdout).unwrap());
     } else {
         println!("Unable to run uptime command.")
     }
@@ -53,12 +55,30 @@ command!(host(_context, message) {
     } else {
         println!("Unable to run uptime command.")
     }
-    let _ = message.reply(format!("Host OS: {}\nHost Arch: {}\nCurrent uptime: {}
+    let embed_result = message.channel_id.send_message(|a| a
+                                                       .embed(|b| b
+                                                              .description("Powered by [Rust Stable](https://rust-lang.org).")
+                                                              .field(|c| c
+                                                                     .name("Host OS:")
+                                                                     .value(OS))
+                                                              .field(|c| c
+                                                                     .name("Host processor arch:")
+                                                                     .value(ARCH))
+                                                              .field(|c| c
+                                                                     .name("Uptime:")
+                                                                     .value(uptime.as_str()))
+                                                              .timestamp(message.timestamp.to_rfc3339())
+                                                              .color(Colour::from_rgb(255,255,255))
+                                                             ));
+
+    if let Err(_) = embed_result {
+        reply_into_chat(&message, format!("Host OS: {}\nHost Arch: {}\nCurrent uptime: {}
                                   \n Powered by Rust(stable). https://rust-lang.org",
                                   OS,
                                   ARCH,
                                   uptime
-                                  ).as_str());
+                                  ));
+    }
 });
 
 /// Links a page on the wiki.
@@ -81,7 +101,37 @@ command!(page(_context, message) {
     say_into_chat(&message, final_message);
 });
 
+command!(fff_old(_context, message) {
+    let mut final_message = String::from("https://factorio.com/blog/post/fff-");
+
+    let mut modified_content = String::new();
+
+    if message.content_safe().starts_with(format!("{}fff-old", ::PREFIX).as_str()) {
+        modified_content = fix_message(message.content_safe(), "fff-old ");
+    } else if message.content_safe().starts_with(format!("{}blog-old", ::PREFIX).as_str()) {
+        modified_content = fix_message(message.content_safe(), "blog-old ");
+    }
+
+    final_message.push_str(modified_content.as_str());
+    reply_into_chat(&message, final_message);
+});
+
+
 // Functions -----------------
+
+/// Replies a message into chat, pinging the original summoner.
+pub fn reply_into_chat<T>(message: &Message, speech: T)
+where
+    T: Display,
+{
+    if let Err(error) = message.reply(format!("{}", speech).as_str()) {
+        println!(
+            "[Error] Unable to send reply message: {}. Error is {}",
+            speech,
+            error
+        );
+    }
+}
 
 /// Says a message into chat. Takes the Message object of the event,
 /// and a str to say.

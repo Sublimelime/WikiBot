@@ -88,11 +88,21 @@ fn main() {
                             .bucket("super-slowly")
                             .exec(ratios))
                    .command("fff", |c| c
-                            .desc("Returns a link to the newest FFF.")
+                            .desc("Returns a link to the newest FFF. Due to expensive operations, can only be used once every 30 seconds.")
                             .help_available(true)
                             .known_as("blog")
                             .bucket("occasionally")
                             .exec(fff))
+                   .command("fff-old", |c| c
+                            .desc("Returns a link to an older FFF. Provide it with the number of the FFF in question.
+                                  \nThis command supports typing after the command, simply end it with two pipes, ||")
+                            .help_available(true)
+                            .example("24")
+                            .min_args(1)
+                            .max_args(1)
+                            .known_as("blog-old")
+                            .bucket("occasionally")
+                            .exec(fff_old))
                   )
             // RATIOS GROUP --------------------------
             .group("Ratios", |g| g
@@ -145,8 +155,8 @@ fn main() {
                    )
                    .on_dispatch_error(|_ctx, msg, error| {
                        if let DispatchError::RateLimited(seconds) = error {
-                           println!("Bot is being rate limited.");
-                           say_into_chat(&msg, format!("Try this again in {} seconds.", seconds));
+                           println!("Bot is being rate limited, or user triggered bucket.");
+                           say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
                        } else if let DispatchError::LackOfPermissions(_) = error {
                            say_into_chat(&msg, "Sorry, you don't have permission to do that.");
                        } else {
@@ -163,12 +173,16 @@ fn main() {
         })
     });
 
-    client.on_ready(|_ctx, ready| {
+    client.on_ready(|ctx, ready| {
         println!("{} is connected!", ready.user.name);
+        ctx.set_game_name(format!("{}help for help!", PREFIX).as_str());
     });
 
     // Init
-    println!("Bot configured with prefix {}, now running...", PREFIX);
+    println!(
+        "Bot configured with prefix {}, now waiting for connection...",
+        PREFIX
+    );
 
     let _ = client.start(); //Start bot
 }

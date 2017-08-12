@@ -12,7 +12,5 @@ opt-level = 3
 serenity = "0.3.0"
 rand = "0.3.16"
 json = "0.11.9"
-
-[dependencies.rss]
-version = "0.7.0"
-features = ["from_url"]
+atom_syndication = "0.5.4"
+reqwest = "0.7.2"

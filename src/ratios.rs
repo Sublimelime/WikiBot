@@ -27,12 +27,13 @@ command!(ratios(_context, message) {
     let result = message.channel_id.send_message(|a| a
                                                  .content("List of all registered ratios:")
                                                  .embed(|b| b
-                                                        .field(|c| c.name("List:").value(&embed_content[..]))
+                                                        .description(&embed_content[..])
                                                         .author(|d| d
                                                                 .name("WikiBot")
                                                                 .url("https://bitbucket.com/Gangsir")
                                                                )
                                                         .color(Colour::from_rgb(100,200,100))
+                                                        .timestamp(message.timestamp.to_rfc3339())
                                                        ));
     if let Err(error) = result {
         println!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump());
