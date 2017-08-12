@@ -53,7 +53,12 @@ command!(host(_context, message) {
     } else {
         println!("Unable to run uptime command.")
     }
-    let _ = message.reply(format!("Host OS: {}\nHost Arch: {}\nCurrent uptime: {}", OS, ARCH, uptime).as_str());
+    let _ = message.reply(format!("Host OS: {}\nHost Arch: {}\nCurrent uptime: {}
+                                  \n Powered by Rust(stable). https://rust-lang.org",
+                                  OS,
+                                  ARCH,
+                                  uptime
+                                  ).as_str());
 });
 
 /// Links a page on the wiki.
@@ -70,7 +75,7 @@ command!(page(_context, message) {
 
     modified_content = modified_content.replace(" ", "_");
 
-    final_message.push_str(&modified_content[..]); //add the specified page to the end
+    final_message.push_str(modified_content.as_str()); //add the specified page to the end
 
     // Post link back into chat
     say_into_chat(&message, final_message);

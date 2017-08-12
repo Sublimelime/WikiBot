@@ -2,11 +2,8 @@ extern crate serenity;
 extern crate rand;
 extern crate json;
 
-use self::serenity::model::Message;
 use self::json::JsonValue;
 use self::serenity::utils::Colour;
-use std::fs::File;
-use std::io::prelude::*;
 
 use commands::*;
 use levenshtein::*;

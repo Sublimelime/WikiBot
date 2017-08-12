@@ -4,15 +4,16 @@ extern crate serenity;
 use std::fs::File;
 use std::io::prelude::*;
 use serenity::client::Client;
-use serenity::framework::Framework;
 use serenity::model::{UserId, Permissions};
 use serenity::framework::{help_commands, DispatchError};
 
 mod commands;
 mod ratios;
 mod levenshtein;
+mod web_requesting;
 use commands::*;
 use ratios::*;
+use web_requesting::*;
 
 // Global config vars
 pub const PREFIX: &'static str = "+";
