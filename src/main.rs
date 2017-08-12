@@ -159,7 +159,7 @@ fn main() {
                    .on_dispatch_error(|_ctx, msg, error| {
                        match error {
                            DispatchError::RateLimited(seconds) => {
-                                println!("Bot is being rate limited, or user triggered bucket.");
+                                make_log_entry("Bot is being rate limited, or user triggered bucket.".to_owned(), "Status");
                                 say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
                            }
                            DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
@@ -168,31 +168,37 @@ fn main() {
                            DispatchError::NotEnoughArguments{min, given} => {
                                let _ = send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
                            }
-                           DispatchError::TooManyArguments{max, given} => {
-                               //Do nothing, this happens
-                           }
-                           _ => println!("Got unknown dispatch error.")
+                           _ => make_log_entry("Got unknown dispatch error.".to_owned(), "Error")
                        }
                    })
         .before(|_, msg, command_name| {
             // Print info about the command use into log
-            println!("Got command '{}' by user '{}#{}'",
+            make_log_entry(format!("Got command '{}' by user '{}#{}'",
                      command_name,
                      msg.author.name,
-                     msg.author.discriminator);
+                     msg.author.discriminator), "Info");
             true
         })
     });
 
+    // Ready/Resume handlers
     client.on_ready(|ctx, ready| {
-        println!("{} is connected!", ready.user.name);
+        make_log_entry(format!("{} is connected!", ready.user.name), "Status");
+        ctx.set_game_name(format!("{}help for help!", PREFIX).as_str());
+    });
+
+    client.on_resume(|ctx, _res| {
+        make_log_entry("Resumed after a disconnect.".to_owned(), "Status");
         ctx.set_game_name(format!("{}help for help!", PREFIX).as_str());
     });
 
     // Init
-    println!(
-        "Bot configured with prefix {}, now waiting for connection...",
-        PREFIX
+    make_log_entry(
+        format!(
+            "Bot configured with prefix {}, now waiting for connection...",
+            PREFIX
+        ),
+        "Status",
     );
 
     let _ = client.start(); //Start bot

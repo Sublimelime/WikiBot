@@ -44,7 +44,7 @@ command!(fff(_context, msg) {
 
                         // Send the FFF embed detailing it
                         if let Err(error) = send_fff_embed(&message, update_time, link, number) {
-                            println!("Got error sending embed for fff results, {}", error);
+                            make_log_entry(format!("Got error sending embed for fff results, {}", error), "Error");
                             reply_into_chat(&message, "Sorry, I was unable to send the results as an embed. Instead, have them plain:");
                             say_into_chat(&message, format!("Latest FFF as of roughly {}:\n{}", update_time, link).as_str());
                         }
@@ -99,6 +99,7 @@ command!(version(_context, msg) {
         }
         if !latest_stable.is_empty() && !latest_experimental.is_empty() {
             if let Err(_) = send_version_embed(&message, &latest_stable, &latest_experimental) {
+                make_log_entry("Unable to send an embed of the results of a version query.".to_owned(), "Error");
                 say_into_chat(&message, format!("I got a result, but was unable to send an embed of the results.
                               \nInstead, have them plain:\n Latest Stable: {}\nLatest experimental: {}", latest_stable, latest_experimental));
             }
@@ -109,35 +110,38 @@ command!(version(_context, msg) {
 });
 
 /// Sends an embed that details the latest stable and experimental versions
-fn send_version_embed(message: &Message, stable: &String, experimental: &String) -> Result<Message, Error> {
+fn send_version_embed(
+    message: &Message,
+    stable: &String,
+    experimental: &String,
+) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("Latest version:")
-                .field(|f| {
-                    f.name("Stable").value(stable.as_str())
-                })
-                .field(|f| {
-                    f.name("Experimental").value(experimental.as_str())
-                })
-            .timestamp(message.timestamp.to_rfc3339())
-            .color(Colour::from_rgb(200, 100, 10))
+                .field(|f| f.name("Stable").value(stable.as_str()))
+                .field(|f| f.name("Experimental").value(experimental.as_str()))
+                .timestamp(message.timestamp.to_rfc3339())
+                .color(Colour::from_rgb(200, 100, 10))
         })
     })
 }
 
 /// Sends the result of the RSS get in an embed. Extracted for code simplicity.
-fn send_fff_embed(message: &Message, update_time: &str, link: &str, number: u32) -> Result<Message, Error> {
+fn send_fff_embed(
+    message: &Message,
+    update_time: &str,
+    link: &str,
+    number: u32,
+) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("FFF Results:")
                 .field(|f| {
-                    f.name(format!("{}: #{}",
-                                   format_rss_time(update_time).as_str(),
-                                   number
-                                   ).as_str())
-                        .value(link)
+                    f.name(
+                        format!("{}: #{}", format_rss_time(update_time).as_str(), number).as_str(),
+                    ).value(link)
                 })
-            .timestamp(message.timestamp.to_rfc3339())
+                .timestamp(message.timestamp.to_rfc3339())
                 .color(Colour::from_rgb(200, 100, 10))
         })
     })

@@ -3,15 +3,17 @@
 extern crate serenity;
 extern crate rand;
 extern crate json;
+extern crate chrono;
 
 use self::json::*;
 use self::rand::Rng;
 use std::process::Command;
 use self::serenity::model::Message;
 use self::serenity::utils::Colour;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::fmt::Display;
 use std::io::prelude::*;
+use self::chrono::{Utc as UTC, DateTime};
 
 /// Your standard ping command, replies with random replies
 command!(ping(_context, message) {
@@ -41,7 +43,7 @@ command!(uptime(_context, message) {
     if let Ok(result) = Command::new("uptime").output() {
         reply_into_chat(&message, String::from_utf8(result.stdout).unwrap());
     } else {
-        println!("Unable to run uptime command.")
+        make_log_entry("Unable to run uptime command.".to_owned(), "Error");
     }
 });
 
@@ -53,7 +55,7 @@ command!(host(_context, message) {
     if let Ok(result) = Command::new("uptime").arg("-p").output() {
         uptime = String::from_utf8(result.stdout).unwrap();
     } else {
-        println!("Unable to run uptime command.")
+        make_log_entry("Unable to run uptime command.".to_owned(), "Error");
     }
     let embed_result = message.channel_id.send_message(|a| a
                                                        .embed(|b| b
@@ -119,6 +121,13 @@ command!(fff_old(_context, message) {
 
 // Functions -----------------
 
+/// Makes a log entry, by prepending the time and date of the entry to what's
+/// provided to the function.
+pub fn make_log_entry(entry: String, kind: &str) {
+    let timestamp: String = UTC::now().to_rfc3339();
+    println!("[{} at {}] {}", kind, timestamp, entry);
+}
+
 /// Sends a simple error embed. Provide the reason for erroring.
 pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
     message.channel_id.send_message(|a| {
@@ -138,10 +147,13 @@ where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
-        println!(
-            "[Error] Unable to send reply message: {}. Error is {}",
-            speech,
-            error
+        make_log_entry(
+            format!(
+                "Unable to send reply message: {}. Error is {}",
+                speech,
+                error
+            ),
+            "Error",
         );
     }
 }
@@ -153,10 +165,13 @@ where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
-        println!(
-            "[Error] Unable to send reply message: {}. Error is {}",
-            speech,
-            error
+        make_log_entry(
+            format!(
+                "Unable to send reply message: {}. Error is {}",
+                speech,
+                error
+            ),
+            "Error",
         );
     }
 }
