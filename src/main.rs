@@ -104,7 +104,6 @@ fn main() {
                             .help_available(true)
                             .example("24")
                             .min_args(1)
-                            .max_args(1)
                             .known_as("blog-old")
                             .exec(fff_old))
                   )
@@ -164,10 +163,10 @@ fn main() {
                                 say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
                            }
                            DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
-                               send_error_embed(&msg, "Sorry, you don't have permission to do that.");
+                               let _ = send_error_embed(&msg, "Sorry, you don't have permission to do that.");
                            }
                            DispatchError::NotEnoughArguments{min, given} => {
-                               send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
+                               let _ = send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
                            }
                            DispatchError::TooManyArguments{max, given} => {
                                //Do nothing, this happens
