@@ -93,6 +93,11 @@ fn main() {
                             .known_as("blog")
                             .bucket("occasionally")
                             .exec(fff))
+                   .command("version", |c| c
+                            .desc("Returns the number of the latest version for stable and experimental. Due to expensive operations, can only be used once every 30 seconds.")
+                            .help_available(true)
+                            .bucket("occasionally")
+                            .exec(version))
                    .command("fff-old", |c| c
                             .desc("Returns a link to an older FFF. Provide it with the number of the FFF in question.
                                   \nThis command supports typing after the command, simply end it with two pipes, ||")
@@ -101,7 +106,6 @@ fn main() {
                             .min_args(1)
                             .max_args(1)
                             .known_as("blog-old")
-                            .bucket("occasionally")
                             .exec(fff_old))
                   )
             // RATIOS GROUP --------------------------
@@ -154,13 +158,21 @@ fn main() {
                             .exec(ratio_set))
                    )
                    .on_dispatch_error(|_ctx, msg, error| {
-                       if let DispatchError::RateLimited(seconds) = error {
-                           println!("Bot is being rate limited, or user triggered bucket.");
-                           say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
-                       } else if let DispatchError::LackOfPermissions(_) = error {
-                           say_into_chat(&msg, "Sorry, you don't have permission to do that.");
-                       } else {
-                           println!("Got unknown dispatch error");
+                       match error {
+                           DispatchError::RateLimited(seconds) => {
+                                println!("Bot is being rate limited, or user triggered bucket.");
+                                say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
+                           }
+                           DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
+                               send_error_embed(&msg, "Sorry, you don't have permission to do that.");
+                           }
+                           DispatchError::NotEnoughArguments{min, given} => {
+                               send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
+                           }
+                           DispatchError::TooManyArguments{max, given} => {
+                               //Do nothing, this happens
+                           }
+                           _ => println!("Got unknown dispatch error.")
                        }
                    })
         .before(|_, msg, command_name| {

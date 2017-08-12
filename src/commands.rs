@@ -119,6 +119,19 @@ command!(fff_old(_context, message) {
 
 // Functions -----------------
 
+/// Sends a simple error embed. Provide the reason for erroring.
+pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
+    message.channel_id.send_message(|a| {
+        a.embed(|e| {
+            e.title("Error")
+                .description(reason)
+                .timestamp(message.timestamp.to_rfc3339())
+                .color(Colour::from_rgb(255, 0, 0))
+        })
+    })
+}
+
+
 /// Replies a message into chat, pinging the original summoner.
 pub fn reply_into_chat<T>(message: &Message, speech: T)
 where

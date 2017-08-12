@@ -10,6 +10,7 @@ use self::atom_syndication::Feed;
 use self::serenity::model::Message;
 use self::serenity::utils::Colour;
 use self::serenity::Error;
+use self::reqwest::*;
 use std::io::BufReader;
 
 /// Requests a link to the newest FFF posted by the devs.
@@ -53,6 +54,24 @@ command!(fff(_context, msg) {
         }
     });
 });
+
+/// Requests the latest version from Wube's servers.
+command!(version(_context, msg) {
+    // Indicate command might take a bit
+    let _ = msg.channel_id.broadcast_typing();
+    let fail_message = "Sorry, I couldn't get a response from Wube's version site.";
+
+    // Clone message, since the original message doesn't stay alive after this function, so
+    // can't be passed to the closure
+    let message = msg.clone();
+    let _ = thread::spawn(move || {
+        // Make client to do our two requests with
+        let client = Client::new().unwrap();
+
+
+    });
+});
+
 
 /// Sends the result of the RSS get in an embed. Extracted for code simplicity.
 fn send_fff_embed(message: &Message, update_time: &str, link: &str) -> Result<Message, Error> {
