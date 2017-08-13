@@ -1,22 +1,28 @@
 #[macro_use]
 extern crate serenity;
 
+#[macro_use]
+extern crate lazy_static;
+
 use std::fs::File;
 use std::io::prelude::*;
 use serenity::client::Client;
 use serenity::model::{UserId, Permissions};
 use serenity::framework::{help_commands, DispatchError};
 
+// Other files
 mod commands;
 mod ratios;
 mod levenshtein;
 mod web_requesting;
+mod constants;
+mod prefix_control;
+
+use prefix_control::*;
+use constants::*;
 use commands::*;
 use ratios::*;
 use web_requesting::*;
-
-// Global config vars
-pub const PREFIX: &'static str = "+";
 
 fn main() {
     let filename = "token.txt";
@@ -25,7 +31,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-    );
+        );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
@@ -43,7 +49,12 @@ fn main() {
             .simple_bucket("occasionally", 30)
 
             .configure(|c|
-                       c.prefix(PREFIX) // set the bot's prefix to prefix declared as global
+                       c.dynamic_prefix(|ctx, message| {
+                           let guild_id = message.guild_id().unwrap(); //Get guild id of the current message
+
+                           let prefixes = constants::PREFIXES.lock().unwrap();
+                           prefixes.get(&guild_id).cloned()
+                       })
                        .ignore_bots(true) //Ignore other bots
                        .ignore_webhooks(true)
                        .allow_dm(true)
@@ -71,7 +82,17 @@ fn main() {
                             .bucket("super-slowly")
                             .exec(host))
                    .command("help", |c| c.exec_help(help_commands::with_embeds)))
-
+            // CONFIG GROUP -----------------------
+            .group("Config", |g| g
+                    .command("register-prefix", |c| c
+                                   .desc("Registers a prefix to be used on this server.")
+                                   .min_args(1)
+                                   .required_permissions(is_powerful_perms)
+                                   .guild_only(true)
+                                   .example("+")
+                                   .help_available(true)
+                                   .exec(register_prefix))
+                    )
             // WIKI GROUP -------------------------
             .group("Wiki", |g| g
                    .command("page", |c|
@@ -106,77 +127,77 @@ fn main() {
                             .min_args(1)
                             .known_as("blog-old")
                             .exec(fff_old))
-                  )
-            // RATIOS GROUP --------------------------
-            .group("Ratios", |g| g
-                   .prefix("ratio")
-                   .command("add", |c| c
-                            .desc("Adds a ratio to the list of created ratios.
+                   )
+                   // RATIOS GROUP --------------------------
+                   .group("Ratios", |g| g
+                          .prefix("ratio")
+                          .command("add", |c| c
+                                   .desc("Adds a ratio to the list of created ratios.
                                   \nProvide a name for the ratio, and the ratio itself. Quotes are required around each arg.")
-                            .min_args(2)
-                            .use_quotes(true)
-                            .max_args(2)
-                            .required_permissions(is_powerful_perms)
-                            .example("\"name\" \"1:2:3\"")
-                            .help_available(true)
-                            .usage("\"name\" \"ratio\"")
-                            .exec(ratio_add))
+                                   .min_args(2)
+                                   .use_quotes(true)
+                                   .max_args(2)
+                                   .required_permissions(is_powerful_perms)
+                                   .example("\"name\" \"1:2:3\"")
+                                   .help_available(true)
+                                   .usage("\"name\" \"ratio\"")
+                                   .exec(ratio_add))
 
-                   .command("get", |c| c
-                            .desc("Retrieves a ratio and prints it into chat.
+                          .command("get", |c| c
+                                   .desc("Retrieves a ratio and prints it into chat.
                                   \nProvide a name for the ratio to get.
                                   \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
-                            .min_args(1)
-                            .example("steam")
-                            .usage("name")
-                            .help_available(true)
-                            .exec(ratio_get))
-                   .command("delete", |c| c
-                            .desc("Deletes a ratio. Can only be used by moderators.")
-                            .min_args(1)
-                            .example("steam")
-                            .help_available(true)
-                            .required_permissions(is_powerful_perms)
-                            .usage("name")
-                            .exec(ratio_delete))
-                   .command("deleteall", |c| c
-                            .desc("Deletes all ratios. Can only be used by moderators.")
-                            .known_as("clear")
-                            .required_permissions(is_powerful_perms)
-                            .help_available(true)
-                            .exec(ratio_deleteall))
-                   .command("set", |c| c
-                            .desc("Sets an existant ratio to a different value. Can only be used by moderators.")
-                            .min_args(2)
-                            .max_args(2)
-                            .help_available(true)
-                            .use_quotes(true)
-                            .example("\"steam\" \"1:2:3\"")
-                            .required_permissions(is_powerful_perms)
-                            .usage("\"name\" \"new value\"")
-                            .exec(ratio_set))
-                   )
-                   .on_dispatch_error(|_ctx, msg, error| {
-                       match error {
-                           DispatchError::RateLimited(seconds) => {
-                                make_log_entry("Bot is being rate limited, or user triggered bucket.".to_owned(), "Status");
-                                say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
-                           }
-                           DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
-                               let _ = send_error_embed(&msg, "Sorry, you don't have permission to do that.");
-                           }
-                           DispatchError::NotEnoughArguments{min, given} => {
-                               let _ = send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
-                           }
-                           _ => make_log_entry("Got unknown dispatch error.".to_owned(), "Error")
-                       }
-                   })
+                                   .min_args(1)
+                                   .example("steam")
+                                   .usage("name")
+                                   .help_available(true)
+                                   .exec(ratio_get))
+                          .command("delete", |c| c
+                                   .desc("Deletes a ratio. Can only be used by moderators.")
+                                   .min_args(1)
+                                   .example("steam")
+                                   .help_available(true)
+                                   .required_permissions(is_powerful_perms)
+                                   .usage("name")
+                                   .exec(ratio_delete))
+                          .command("deleteall", |c| c
+                                   .desc("Deletes all ratios. Can only be used by moderators.")
+                                   .known_as("clear")
+                                   .required_permissions(is_powerful_perms)
+                                   .help_available(true)
+                                   .exec(ratio_deleteall))
+                          .command("set", |c| c
+                                   .desc("Sets an existant ratio to a different value. Can only be used by moderators.")
+                                   .min_args(2)
+                                   .max_args(2)
+                                   .help_available(true)
+                                   .use_quotes(true)
+                                   .example("\"steam\" \"1:2:3\"")
+                                   .required_permissions(is_powerful_perms)
+                                   .usage("\"name\" \"new value\"")
+                                   .exec(ratio_set))
+                          )
+                          .on_dispatch_error(|_ctx, msg, error| {
+                              match error {
+                                  DispatchError::RateLimited(seconds) => {
+                                      make_log_entry("Bot is being rate limited, or user triggered bucket.".to_owned(), "Status");
+                                      say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
+                                  }
+                                  DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
+                                      let _ = send_error_embed(&msg, "Sorry, you don't have permission to do that.");
+                                  }
+                                  DispatchError::NotEnoughArguments{min, given} => {
+                                      let _ = send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
+                                  }
+                                  _ => make_log_entry("Got unknown dispatch error.".to_owned(), "Error")
+                              }
+                          })
         .before(|_, msg, command_name| {
             // Print info about the command use into log
             make_log_entry(format!("Got command '{}' by user '{}#{}'",
-                     command_name,
-                     msg.author.name,
-                     msg.author.discriminator), "Info");
+                                   command_name,
+                                   msg.author.name,
+                                   msg.author.discriminator), "Info");
             true
         })
     });
@@ -184,22 +205,16 @@ fn main() {
     // Ready/Resume handlers
     client.on_ready(|ctx, ready| {
         make_log_entry(format!("{} is connected!", ready.user.name), "Status");
-        ctx.set_game_name(format!("{}help for help!", PREFIX).as_str());
+        ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
     });
 
     client.on_resume(|ctx, _res| {
         make_log_entry("Resumed after a disconnect.".to_owned(), "Status");
-        ctx.set_game_name(format!("{}help for help!", PREFIX).as_str());
+        ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
     });
 
     // Init
-    make_log_entry(
-        format!(
-            "Bot configured with prefix {}, now waiting for connection...",
-            PREFIX
-        ),
-        "Status",
-    );
+    make_log_entry( "Now waiting for connection...".to_owned(), "Status");
 
     let _ = client.start(); //Start bot
 }

@@ -13,6 +13,7 @@ use self::serenity::utils::Colour;
 use std::fs::File;
 use std::fmt::Display;
 use std::io::prelude::*;
+use constants::*;
 use self::chrono::{Utc as UTC, DateTime};
 
 /// Your standard ping command, replies with random replies
@@ -31,7 +32,7 @@ command!(ping(_context, message) {
 /// Prints various info about the bot itself.
 command!(info(_context, message) {
     let mut reply = String::from("A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
-    reply.push_str(::PREFIX);
+    reply.push_str(get_prefix_for_guild(&message).as_str());
     reply.push_str("help. All commands that do not take arguments support talking after the commands with ||, commands that take arguments support it if it says so in help.
                    \nThanks, and enjoy! For info about the host of this bot, run the `host` command.");
     let _ = message.channel_id.send_message(|a| a
@@ -112,10 +113,10 @@ command!(page(_context, message) {
 
     // Remove command from message content, and code-ify it
     let mut modified_content = String::new();
-    if message.content_safe().starts_with(format!("{}page", ::PREFIX).as_str()) {
-        modified_content = fix_message(message.content_safe(), "page ");
-    } else if message.content_safe().starts_with(format!("{}link", ::PREFIX).as_str()) {
-        modified_content = fix_message(message.content_safe(), "link ");
+    if message.content_safe().starts_with(format!("{}page", get_prefix_for_guild(&message)).as_str()) {
+        modified_content = fix_message(message.content_safe(), "page ", &message);
+    } else if message.content_safe().starts_with(format!("{}link", get_prefix_for_guild(&message)).as_str()) {
+        modified_content = fix_message(message.content_safe(), "link ", &message);
     }
 
     modified_content = modified_content.replace(" ", "_");
@@ -131,10 +132,10 @@ command!(fff_old(_context, message) {
 
     let mut modified_content = String::new();
 
-    if message.content_safe().starts_with(format!("{}fff-old", ::PREFIX).as_str()) {
-        modified_content = fix_message(message.content_safe(), "fff-old ");
-    } else if message.content_safe().starts_with(format!("{}blog-old", ::PREFIX).as_str()) {
-        modified_content = fix_message(message.content_safe(), "blog-old ");
+    if message.content_safe().starts_with(format!("{}fff-old", get_prefix_for_guild(&message)).as_str()) {
+        modified_content = fix_message(message.content_safe(), "fff-old ", &message);
+    } else if message.content_safe().starts_with(format!("{}blog-old", get_prefix_for_guild(&message)).as_str()) {
+        modified_content = fix_message(message.content_safe(), "blog-old ", &message);
     }
 
     final_message.push_str(modified_content.as_str());
@@ -201,9 +202,9 @@ where
 
 /// Corrects a message, removing the command from it, and truncating
 /// everything after ||
-pub fn fix_message(message: String, command: &str) -> String {
+pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
 
-    let mut modified_content = message.replace(command, "").replace(::PREFIX, "");
+    let mut modified_content = message.replace(command, "").replace(get_prefix_for_guild(&msg).as_str(), "");
 
     // Truncate message to ||
     if let Some(index) = modified_content.find(" ||") {
@@ -225,21 +226,4 @@ pub fn get_ratio_json() -> JsonValue {
     let data = data.trim(); //Remove the newline from the end of the string if present
 
     json::parse(data).expect("Unable to parse json from ratios file.")
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::fix_message;
-    #[test]
-    fn test_message_fixing() {
-        let result = fix_message(String::from("+command This is a test message"), "command ");
-        assert_eq!(result, "This is a test message");
-
-        let result = fix_message(
-            String::from("+command arg || Some random chat text"),
-            "command ",
-        );
-        assert_eq!(result, "arg");
-    }
 }

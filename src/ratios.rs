@@ -6,6 +6,7 @@ use self::json::JsonValue;
 use self::serenity::utils::Colour;
 
 use commands::*;
+use constants::*;
 use std::fs::OpenOptions;
 use levenshtein::*;
 
@@ -47,7 +48,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() < 4 {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
-                                        Use ```{}help ratio add``` for info on how to format this command.", ::PREFIX).as_str());
+                                        Use ```{}help ratio add``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
     } else {
         let mut parsed_json = get_ratio_json();
 
@@ -69,7 +70,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
 /// Retrieves a ratio from the storage of the bot.
 command!(ratio_get(_context, message) {
     let parsed_json = get_ratio_json();
-    let request = fix_message(message.content_safe(), "ratio get ");
+    let request = fix_message(message.content_safe(), "ratio get ", &message);
 
     // Key is not found, do a levenshtein search to see if they made a typo
     if !parsed_json.has_key(request.as_str()) {
@@ -92,7 +93,7 @@ command!(ratio_get(_context, message) {
 /// Deletes a stored ratio. Administrators only.
 command!(ratio_delete(_context, message) {
     let mut parsed_json = get_ratio_json();
-    let request = fix_message(message.content_safe(), "ratio delete ");
+    let request = fix_message(message.content_safe(), "ratio delete ", &message);
 
     if !parsed_json.has_key(request.as_str()) {
         let _ = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request).as_str());
@@ -120,7 +121,7 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() < 4 {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
-                                        Use ```{}help ratio set``` for info on how to format this command.", ::PREFIX).as_str());
+                                        Use ```{}help ratio set``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
     } else {
         let mut parsed_json = get_ratio_json();
 
