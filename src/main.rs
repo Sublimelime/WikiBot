@@ -19,7 +19,6 @@ mod constants;
 mod prefix_control;
 
 use prefix_control::*;
-use constants::*;
 use commands::*;
 use ratios::*;
 use web_requesting::*;
@@ -49,7 +48,7 @@ fn main() {
             .simple_bucket("occasionally", 30)
 
             .configure(|c|
-                       c.dynamic_prefix(|ctx, message| {
+                       c.dynamic_prefix(|_ctx, message| {
                            let guild_id = message.guild_id().unwrap(); //Get guild id of the current message
 
                            let prefixes = constants::PREFIXES.lock().unwrap();
