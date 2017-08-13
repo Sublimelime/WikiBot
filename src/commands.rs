@@ -30,11 +30,34 @@ command!(ping(_context, message) {
 
 /// Prints various info about the bot itself.
 command!(info(_context, message) {
-    let mut reply = String::from("Author: Gangsir\nDesc: A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
+    let mut reply = String::from("A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
     reply.push_str(::PREFIX);
     reply.push_str("help. All commands that do not take arguments support talking after the commands with ||, commands that take arguments support it if it says so in help.
                    \nThanks, and enjoy! For info about the host of this bot, run the `host` command.");
-    reply_into_chat(&message, reply);
+    let _ = message.channel_id.send_message(|a| a
+                                            .embed(|b| b
+                                                   .title("WikiBot")
+                                                   .description(reply.as_str())
+                                                   .field(|c| c
+                                                          .name("Author")
+                                                          .value("Gangsir")
+                                                          )
+                                                   .field(|c| c
+                                                          .name("Contact")
+                                                          .value("I'm in the factorio discord server, or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir).")
+                                                          )
+                                                   .field(|c| c
+                                                         .name("Programming language")
+                                                         .value("Made in [Rust](https://rust-lang.org).")
+                                                          )
+                                                   .field(|c| c
+                                                         .name("Library")
+                                                         .value("Made with [Serenity](https://crates.io/crates/serenity).")
+                                                          )
+                                                   .timestamp(message.timestamp.to_rfc3339())
+                                                   .color(Colour::from_rgb(255, 255, 255))
+                                                   )
+                                            );
 });
 
 /// Prints current system status, including uptime
