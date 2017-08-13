@@ -15,5 +15,5 @@ command!(register_prefix(_c, m, args) {
     } else {
         say_into_chat(&m, format!("Success, registered prefix {}, over old prefix {}.", prefix, old_prefix.unwrap()));
     }
-    make_log_entry(format!("Changed prefix of server id {:?}, to new prefix {}", guild_id, prefix), "Info");
+    make_log_entry(format!("Changed prefix of server id {:?}, to new prefix {}", guild_id, prefix), "Prefix");
 });

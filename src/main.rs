@@ -84,8 +84,9 @@ fn main() {
                    .command("help", |c| c.exec_help(help_commands::with_embeds)))
             // CONFIG GROUP -----------------------
             .group("Config", |g| g
-                    .command("register-prefix", |c| c
-                                   .desc("Registers a prefix to be used on this server.")
+                    .command("prefix", |c| c
+                                   .desc("Registers/Changes a prefix on this server.
+                                         \nOnly one prefix per server can be set, ensure it doesn't collide with any other bots.")
                                    .min_args(1)
                                    .required_permissions(is_powerful_perms)
                                    .guild_only(true)

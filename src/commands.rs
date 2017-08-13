@@ -55,6 +55,10 @@ command!(info(_context, message) {
                                                          .name("Library")
                                                          .value("Made with [Serenity](https://crates.io/crates/serenity).")
                                                           )
+                                                   .field(|c| c
+                                                          .name("Local prefix")
+                                                          .value(get_prefix_for_guild(&message).as_str())
+                                                          )
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
                                                    )
