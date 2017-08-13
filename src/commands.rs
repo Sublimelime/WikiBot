@@ -42,27 +42,27 @@ command!(info(_context, message) {
                                                    .field(|c| c
                                                           .name("Author")
                                                           .value("Gangsir")
-                                                          )
+                                                         )
                                                    .field(|c| c
                                                           .name("Contact")
                                                           .value("I'm in the factorio discord server, or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir).")
-                                                          )
+                                                         )
                                                    .field(|c| c
-                                                         .name("Programming language")
-                                                         .value("Made in [Rust](https://rust-lang.org).")
-                                                          )
+                                                          .name("Programming language")
+                                                          .value("Made in [Rust](https://rust-lang.org).")
+                                                         )
                                                    .field(|c| c
-                                                         .name("Library")
-                                                         .value("Made with [Serenity](https://crates.io/crates/serenity).")
-                                                          )
+                                                          .name("Library")
+                                                          .value("Made with [Serenity](https://crates.io/crates/serenity).")
+                                                         )
                                                    .field(|c| c
                                                           .name("Local prefix")
                                                           .value(get_prefix_for_guild(&message).as_str())
-                                                          )
+                                                         )
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
                                                    )
-                                            );
+                                                   );
 });
 
 /// Prints current system status, including uptime
@@ -168,10 +168,22 @@ pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Mes
     })
 }
 
+/// Sends a simple success embed, with provided description.
+pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
+    message.channel_id.send_message(|a| {
+        a.embed(|e| {
+            e.title("Success")
+                .description(reason)
+                .timestamp(message.timestamp.to_rfc3339())
+                .color(Colour::from_rgb(0, 255, 0))
+        })
+    })
+}
+
 
 /// Replies a message into chat, pinging the original summoner.
 pub fn reply_into_chat<T>(message: &Message, speech: T)
-where
+    where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
@@ -180,16 +192,16 @@ where
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-            ),
-            "Error",
-        );
+                ),
+                "Error",
+                );
     }
 }
 
 /// Says a message into chat. Takes the Message object of the event,
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
-where
+    where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
@@ -198,9 +210,9 @@ where
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-            ),
-            "Error",
-        );
+                ),
+                "Error",
+                );
     }
 }
 
@@ -225,7 +237,7 @@ pub fn get_ratio_json() -> JsonValue {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(
         "Something went wrong reading the ratios file.",
-    );
+        );
 
     let data = data.trim(); //Remove the newline from the end of the string if present
 

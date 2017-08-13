@@ -60,7 +60,9 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
             // Write it back to the file
             write_ratio_json(parsed_json);
 
-            say_into_chat(&message, format!("Success, added ratio {} for concept {}.", ratio, name));
+            if let Err(_) = send_success_embed(&message, format!("Success, added ratio {} for concept {}.", ratio, name).as_str()) {
+                say_into_chat(&message, format!("Success, added ratio {} for concept {}.", ratio, name));
+            }
         } else {
             let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name. Try using ```ratio set``` instead, or removing it.");
         }
@@ -103,7 +105,9 @@ command!(ratio_delete(_context, message) {
         write_ratio_json(parsed_json);
 
         // Build message
-        say_into_chat(&message, format!("Success, ratio for `{}` was deleted.", request));
+        if let Err(_) = send_success_embed(&message, format!("Success, ratio for `{}` was deleted.", request).as_str()) {
+            say_into_chat(&message, format!("Success, ratio for `{}` was deleted.", request));
+        }
     }
 });
 
@@ -112,7 +116,9 @@ command!(ratio_deleteall(_context, message) {
     // Clear all the ratios by writing an empty object to the file
     write_ratio_json(JsonValue::new_object());
 
-    say_into_chat(&message, "Success, all ratios deleted.");
+    if let Err(_) = send_success_embed(&message, "Success, all ratios deleted.") {
+        say_into_chat(&message, "Success, all ratios deleted.");
+    }
 });
 
 
@@ -133,7 +139,9 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
             // Write it back to the file
             write_ratio_json(parsed_json);
 
-            say_into_chat(&message, format!("Success, set ratio `{}` for concept `{}`.", ratio, name));
+            if let Err(_) = send_success_embed(&message, format!("Success, set ratio `{}` for concept `{}`.", ratio, name).as_str()) {
+                say_into_chat(&message, format!("Success, set ratio `{}` for concept `{}`.", ratio, name));
+            }
         } else {
             let _ = send_error_embed(&message, "Cannot set, key not found in dictionary. Try using ```ratio add``` instead.");
         }
@@ -155,6 +163,6 @@ pub fn write_ratio_json(value: JsonValue) {
             "Error writing to json file,
             aborting with error: {:?}",
             error
-        );
+            );
     }
 }
