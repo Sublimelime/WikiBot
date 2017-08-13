@@ -163,6 +163,6 @@ pub fn write_ratio_json(value: JsonValue) {
             "Error writing to json file,
             aborting with error: {:?}",
             error
-            );
+        );
     }
 }

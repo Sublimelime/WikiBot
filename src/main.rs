@@ -31,7 +31,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-        );
+    );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
@@ -215,7 +215,7 @@ fn main() {
     });
 
     // Init
-    make_log_entry( "Now waiting for connection...".to_owned(), "Status");
+    make_log_entry("Now waiting for connection...".to_owned(), "Status");
 
     let _ = client.start(); //Start bot
 }

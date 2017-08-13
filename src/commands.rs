@@ -183,7 +183,7 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
 
 /// Replies a message into chat, pinging the original summoner.
 pub fn reply_into_chat<T>(message: &Message, speech: T)
-    where
+where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
@@ -192,16 +192,16 @@ pub fn reply_into_chat<T>(message: &Message, speech: T)
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-                ),
-                "Error",
-                );
+            ),
+            "Error",
+        );
     }
 }
 
 /// Says a message into chat. Takes the Message object of the event,
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
-    where
+where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
@@ -210,9 +210,9 @@ pub fn say_into_chat<T>(message: &Message, speech: T)
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-                ),
-                "Error",
-                );
+            ),
+            "Error",
+        );
     }
 }
 
@@ -220,7 +220,11 @@ pub fn say_into_chat<T>(message: &Message, speech: T)
 /// everything after ||
 pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
 
-    let mut modified_content = message.replace(command, "").replace(get_prefix_for_guild(&msg).as_str(), "");
+    let mut modified_content = message.replace(command, "").replace(
+        get_prefix_for_guild(&msg)
+            .as_str(),
+        "",
+    );
 
     // Truncate message to ||
     if let Some(index) = modified_content.find(" ||") {
@@ -237,7 +241,7 @@ pub fn get_ratio_json() -> JsonValue {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(
         "Something went wrong reading the ratios file.",
-        );
+    );
 
     let data = data.trim(); //Remove the newline from the end of the string if present
 
