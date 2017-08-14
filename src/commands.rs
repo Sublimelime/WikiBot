@@ -8,6 +8,7 @@ extern crate chrono;
 use self::json::*;
 use self::rand::Rng;
 use std::process::Command;
+use std::process;
 use self::serenity::model::{Message, GuildId};
 use self::serenity::utils::Colour;
 use std::fs::{File, OpenOptions};
@@ -27,6 +28,11 @@ command!(ping(_context, message) {
     let random = rand::thread_rng().gen_range(0, replies.len());
 
     reply_into_chat(&message, replies[random]);
+});
+
+command!(stop_process(_context, message) {
+    reply_into_chat(&message, "Stopping bot. Goodbye.");
+    process::exit(0);
 });
 
 /// Prints various info about the bot itself.
@@ -251,6 +257,9 @@ pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
             .as_str(),
         "",
     );
+
+    modified_content = modified_content.replace(format!("@{}", BOT_NAME).as_str(), "");
+    modified_content = modified_content.trim().to_owned();
 
     // Truncate message to ||
     if let Some(index) = modified_content.find(" ||") {

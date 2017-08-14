@@ -30,8 +30,8 @@ command!(ratios(_context, message) {
                                                  .content("List of all registered ratios:")
                                                  .embed(|b| b
                                                         .title("Ratios for this server:")
-                                                        .description(embed_content.as_str())
-                                                        .color(Colour::from_rgb(100,200,100))
+                                                        .description(&embed_content[..embed_content.len()-2])
+                                                        .color(Colour::from_rgb(119,0,255))
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
     if let Err(error) = result {
@@ -44,7 +44,7 @@ command!(ratios(_context, message) {
 /// Can only be used by moderators.
 command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
-    if message.content_safe().matches("\"").count() != 4 {
+    if message.content_safe().matches("\"").count() != 4 || name.is_empty() || ratio.is_empty() {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help ratio add``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
     } else {
@@ -91,7 +91,15 @@ command!(ratio_get(_context, message) {
         }
     } else { // Key is found literally
         // Build message
-        say_into_chat(&message, format!("Ratio for {}:\n{}", request, parsed_json[&request].as_str().unwrap()));
+        if let Err(_) = message.channel_id.send_message(|a| a
+                                                        .embed(|b| b
+                                                               .title(request.as_str())
+                                                               .description(parsed_json[&request].as_str().unwrap())
+                                                               .color(Colour::from_rgb(119,0,255))
+                                                               .timestamp(message.timestamp.to_rfc3339())
+                                                              )) {
+            say_into_chat(&message, format!("Ratio for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+        }
     }
 });
 
@@ -128,9 +136,10 @@ command!(ratio_deleteall(_context, message) {
 /// Changes the value of an existant ratio. Administrators only.
 command!(ratio_set(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
-    if message.content_safe().matches("\"").count() != 4 {
+    if message.content_safe().matches("\"").count() != 4 || name.is_empty() || ratio.is_empty() {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
-                                        Use ```{}help ratio set``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
+                                        Use ```{}help ratio set``` for info on how to format this command.",
+                                        get_prefix_for_guild(&message)).as_str());
     } else {
         let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
@@ -170,10 +179,10 @@ pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-                error
+            error
             ),
             "Error",
-        );
+            );
     } else {
         make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
     }

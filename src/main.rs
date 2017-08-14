@@ -72,11 +72,17 @@ fn main() {
                             .batch_known_as(vec!["about", "what", "?"])
                             .exec(info))
                    .command("uptime", |c| c
-                            .desc("Prints out info about the bot's uptime, and system status.")
+                            .desc("Prints out info about the bot's uptime, and system status. Can only be used by the owner.")
                             .known_as("status")
                             .help_available(false)
                             .owners_only(true)
                             .exec(uptime))
+                   .command("stop", |c| c
+                            .desc("Stops the bot, shutting it down. Can only be used by the owner.")
+                            .known_as("exit")
+                            .help_available(false)
+                            .owners_only(true)
+                            .exec(stop_process))
                    .command("host", |c| c
                             .desc("Prints out info about the host's uptime, and system info.")
                             .bucket("super-slowly")
@@ -134,7 +140,8 @@ fn main() {
                           .prefix("ratio")
                           .command("add", |c| c
                                    .desc("Adds a ratio to the list of created ratios.
-                                  \nProvide a name for the ratio, and the ratio itself. Quotes are required around each arg.")
+                                  \nProvide a name for the ratio, and the ratio itself. Quotes are required around each arg.
+                                  \n Can only be used by moderators.")
                                    .min_args(2)
                                    .use_quotes(true)
                                    .max_args(2)
