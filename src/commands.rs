@@ -122,7 +122,7 @@ command!(host(_context, message) {
     }
     let embed_result = message.channel_id.send_message(|a| a
                                                        .embed(|b| b
-                                                              .description("Powered by [Rust Stable](https://rust-lang.org).")
+                                                              .description("Powered by [Rust Stable](https://www.rust-lang.org).")
                                                               .field(|c| c
                                                                      .name("Host OS:")
                                                                      .value(OS))
@@ -138,7 +138,7 @@ command!(host(_context, message) {
 
     if let Err(_) = embed_result {
         reply_into_chat(&message, format!("Host OS: {}\nHost Arch: {}\nCurrent uptime: {}
-                                  \n Powered by Rust(stable). https://rust-lang.org",
+                                  \n Powered by Rust(stable). https://www.rust-lang.org",
                                   OS,
                                   ARCH,
                                   uptime
