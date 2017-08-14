@@ -55,7 +55,7 @@ command!(info(_context, message) {
                                                          )
                                                    .field(|c| c
                                                           .name("Programming language")
-                                                          .value("Made in [Rust](https://rust-lang.org).")
+                                                          .value("Made in [Rust](https://www.rust-lang.org).")
                                                          )
                                                    .field(|c| c
                                                           .name("Library")
