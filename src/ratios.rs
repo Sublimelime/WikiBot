@@ -24,13 +24,16 @@ command!(ratios(_context, message) {
         //Change from proprietary format into native
         embed_content += format!("{}, ", key).as_str();
     }
+    if embed_content.len() > 3 {
+        embed_content = String::from(&embed_content[..embed_content.len()-2]);
+    }
 
     //Send the message with embed
     let result = message.channel_id.send_message(|a| a
                                                  .content("List of all registered ratios:")
                                                  .embed(|b| b
                                                         .title("Ratios for this server:")
-                                                        .description(&embed_content[..embed_content.len()-2])
+                                                        .description(embed_content.as_str())
                                                         .color(Colour::from_rgb(119,0,255))
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
