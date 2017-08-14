@@ -24,7 +24,10 @@ command!(ping(_context, message) {
     "Hearing you loud and clear.","PiNg!", "Yep, still here.",
     "Nah, totally offline.", "Sup?", "What's a bot gotta do to get some sleep around here?",
     "Running.", "Uptime is my prime focus.", "It... It's not like I wanted to be pinged by you... :blush:",
-    "!gniP", "*Snore* :zzz:", "Cheers!", "Yes?"];
+    "!gniP", "*Snore* :zzz:", "Cheers!", "Yes?",
+    // Other languages
+    "*Tung!*", "*Servus!*", "*Hallo!", "*Ahoj!", "*Bonjour!*",
+    "*Buon giorno!*"];
     let random = rand::thread_rng().gen_range(0, replies.len());
 
     reply_into_chat(&message, replies[random]);

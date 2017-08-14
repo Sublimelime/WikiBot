@@ -182,10 +182,10 @@ pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-            error
+                error
             ),
             "Error",
-            );
+        );
     } else {
         make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
     }
