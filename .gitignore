@@ -2,3 +2,4 @@ target/*
 *.bk
 token.txt
 *.vim
+*.json

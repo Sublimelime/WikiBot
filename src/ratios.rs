@@ -4,6 +4,7 @@ extern crate json;
 
 use self::json::JsonValue;
 use self::serenity::utils::Colour;
+use self::serenity::model::GuildId;
 
 use commands::*;
 use constants::*;
@@ -12,27 +13,24 @@ use levenshtein::*;
 
 /// Prints out a grand list of all current stored ratios.
 command!(ratios(_context, message) {
-    let parsed_json = get_ratio_json();
+    let parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
     let mut embed_content = String::new();
 
     for entry in parsed_json.entries() {
         //Destructure the tuple to make code easier
-        let (key, value) = entry;
+        let (key, _value) = entry;
 
         //Change from proprietary format into native
-        embed_content += format!("{}\n{}\n\n", key, value.as_str().unwrap()).as_str();
+        embed_content += format!("{}, ", key).as_str();
     }
 
     //Send the message with embed
     let result = message.channel_id.send_message(|a| a
                                                  .content("List of all registered ratios:")
                                                  .embed(|b| b
-                                                        .description(&embed_content[..])
-                                                        .author(|d| d
-                                                                .name("WikiBot")
-                                                                .url("https://bitbucket.com/Gangsir")
-                                                               )
+                                                        .title("Ratios for this server:")
+                                                        .description(embed_content.as_str())
                                                         .color(Colour::from_rgb(100,200,100))
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
@@ -46,11 +44,11 @@ command!(ratios(_context, message) {
 /// Can only be used by moderators.
 command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
-    if message.content_safe().matches("\"").count() < 4 {
+    if message.content_safe().matches("\"").count() != 4 {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help ratio add``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
     } else {
-        let mut parsed_json = get_ratio_json();
+        let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
         if !parsed_json.has_key(name.as_str()) {
 
@@ -58,7 +56,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
             parsed_json[&name] = ratio.clone().into();
 
             // Write it back to the file
-            write_ratio_json(parsed_json);
+            write_ratio_json(parsed_json, &message.guild_id().unwrap());
 
             if let Err(_) = send_success_embed(&message, format!("Success, added ratio {} for concept {}.", ratio, name).as_str()) {
                 say_into_chat(&message, format!("Success, added ratio {} for concept {}.", ratio, name));
@@ -71,7 +69,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
 
 /// Retrieves a ratio from the storage of the bot.
 command!(ratio_get(_context, message) {
-    let parsed_json = get_ratio_json();
+    let parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
     let request = fix_message(message.content_safe(), "ratio get ", &message);
 
     // Key is not found, do a levenshtein search to see if they made a typo
@@ -94,7 +92,7 @@ command!(ratio_get(_context, message) {
 
 /// Deletes a stored ratio. Administrators only.
 command!(ratio_delete(_context, message) {
-    let mut parsed_json = get_ratio_json();
+    let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
     let request = fix_message(message.content_safe(), "ratio delete ", &message);
 
     if !parsed_json.has_key(request.as_str()) {
@@ -102,7 +100,7 @@ command!(ratio_delete(_context, message) {
     } else { // Key is found
         // Do the deletion
         let _ = parsed_json.remove(request.as_str());
-        write_ratio_json(parsed_json);
+        write_ratio_json(parsed_json, &message.guild_id().unwrap());
 
         // Build message
         if let Err(_) = send_success_embed(&message, format!("Success, ratio for `{}` was deleted.", request).as_str()) {
@@ -114,7 +112,7 @@ command!(ratio_delete(_context, message) {
 /// Deletes all stored ratios in the registry. Admin only.
 command!(ratio_deleteall(_context, message) {
     // Clear all the ratios by writing an empty object to the file
-    write_ratio_json(JsonValue::new_object());
+    write_ratio_json(JsonValue::new_object(), &message.guild_id().unwrap());
 
     if let Err(_) = send_success_embed(&message, "Success, all ratios deleted.") {
         say_into_chat(&message, "Success, all ratios deleted.");
@@ -125,11 +123,11 @@ command!(ratio_deleteall(_context, message) {
 /// Changes the value of an existant ratio. Administrators only.
 command!(ratio_set(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
-    if message.content_safe().matches("\"").count() < 4 {
+    if message.content_safe().matches("\"").count() != 4 {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help ratio set``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
     } else {
-        let mut parsed_json = get_ratio_json();
+        let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
         if parsed_json.has_key(name.as_str()) {
 
@@ -137,7 +135,7 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
             parsed_json[&name] = ratio.clone().into();
 
             // Write it back to the file
-            write_ratio_json(parsed_json);
+            write_ratio_json(parsed_json, &message.guild_id().unwrap());
 
             if let Err(_) = send_success_embed(&message, format!("Success, set ratio `{}` for concept `{}`.", ratio, name).as_str()) {
                 say_into_chat(&message, format!("Success, set ratio `{}` for concept `{}`.", ratio, name));
@@ -149,20 +147,26 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
 });
 
 ///Takes a JsonValue, and writes it to the ratios file.
-pub fn write_ratio_json(value: JsonValue) {
+pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
+    // Determine file name based on the guild in question
+    let ratio_file = format!("{:?}-ratios.json", guild);
+
     // Open the json file for writing, nuking any previous contents
     let mut file = OpenOptions::new()
         .write(true)
+        .create(true) //create the file if it doesn't exist
         .truncate(true)
-        .open("ratios.json")
-        .expect("Unable to open json file for writing.");
+        .open(ratio_file.as_str())
+        .expect("Unable to open/create json file for writing.");
 
     // Write json to file
     if let Err(error) = value.write(&mut file) {
-        println!(
+        make_log_entry(format!(
             "Error writing to json file,
             aborting with error: {:?}",
             error
-        );
+        ), "Error");
+    } else {
+        make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
     }
 }

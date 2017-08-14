@@ -8,9 +8,9 @@ extern crate chrono;
 use self::json::*;
 use self::rand::Rng;
 use std::process::Command;
-use self::serenity::model::Message;
+use self::serenity::model::{Message, GuildId};
 use self::serenity::utils::Colour;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::fmt::Display;
 use std::io::prelude::*;
 use constants::*;
@@ -262,14 +262,40 @@ pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
 
 /// Opens the ratios file, and returns the Json object contained
 /// within it. Returns a JsonValue
-pub fn get_ratio_json() -> JsonValue {
-    let mut file = File::open("ratios.json").unwrap();
-    let mut data = String::new();
-    file.read_to_string(&mut data).expect(
-        "Something went wrong reading the ratios file.",
-        );
+pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
+    // Determine file name based on the guild in question
+    let ratio_file = format!("{:?}-ratios.json", guild);
 
-    let data = data.trim(); //Remove the newline from the end of the string if present
+    // Open the json file for writing, nuking any previous contents
+    let file_result = OpenOptions::new()
+        .read(true)
+        .open(ratio_file.as_str());
 
-    json::parse(data).expect("Unable to parse json from ratios file.")
+    match file_result { //If it errors here, it's probably because the file doesn't exist
+        Err(_) => {
+            let mut file_handle = File::create(ratio_file).expect("Could not create ratios file.");
+            file_handle.write_all(b"{}").expect("Got error writing to newly created json file."); //Write empty json object to it
+
+            return JsonValue::new_object(); //Return empty database
+        }
+        Ok(mut file) => {
+
+            let mut data = String::new();
+            file.read_to_string(&mut data).expect(
+                "Something went wrong reading the ratios file.",
+                );
+
+            let data = data.trim(); //Remove the newline from the end of the string if present
+
+            let result = json::parse(data);
+
+            if let Err(_) = result {
+                make_log_entry("Unable to parse json from ratios file.".to_owned(), "Error");
+                say_into_chat(&message, "Sorry, I couldn't read the database for this server.");
+                return JsonValue::new_object();
+            } else {
+                return result.unwrap();
+            }
+        }
+    }
 }
