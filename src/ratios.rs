@@ -49,7 +49,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || ratio.is_empty() {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
-                                        Use ```{}help ratio add``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
+                                        Use ```{}help ratios add``` for info on how to format this command.", get_prefix_for_guild(&message)).as_str());
     } else {
         let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
@@ -73,7 +73,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
 /// Retrieves a ratio from the storage of the bot.
 command!(ratio_get(_context, message) {
     let parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
-    let request = fix_message(message.content_safe(), "ratio get ", &message);
+    let request = fix_message(message.content_safe(), "ratios get ", &message);
 
     // Key is not found, do a levenshtein search to see if they made a typo
     if !parsed_json.has_key(request.as_str()) {
@@ -109,7 +109,7 @@ command!(ratio_get(_context, message) {
 /// Deletes a stored ratio. Administrators only.
 command!(ratio_delete(_context, message) {
     let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
-    let request = fix_message(message.content_safe(), "ratio delete ", &message);
+    let request = fix_message(message.content_safe(), "ratios delete ", &message);
 
     if !parsed_json.has_key(request.as_str()) {
         let _ = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request).as_str());
