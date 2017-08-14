@@ -14,7 +14,7 @@ use std::fs::{File, OpenOptions};
 use std::fmt::Display;
 use std::io::prelude::*;
 use constants::*;
-use self::chrono::{Utc as UTC, DateTime};
+use self::chrono::Utc as UTC;
 
 /// Your standard ping command, replies with random replies
 command!(ping(_context, message) {
@@ -209,7 +209,7 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
 
 /// Replies a message into chat, pinging the original summoner.
 pub fn reply_into_chat<T>(message: &Message, speech: T)
-    where
+where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
@@ -218,16 +218,16 @@ pub fn reply_into_chat<T>(message: &Message, speech: T)
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-                ),
-                "Error",
-                );
+            ),
+            "Error",
+        );
     }
 }
 
 /// Says a message into chat. Takes the Message object of the event,
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
-    where
+where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
@@ -236,9 +236,9 @@ pub fn say_into_chat<T>(message: &Message, speech: T)
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-                ),
-                "Error",
-                );
+            ),
+            "Error",
+        );
     }
 }
 
@@ -248,9 +248,9 @@ pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
 
     let mut modified_content = message.replace(command, "").replace(
         get_prefix_for_guild(&msg)
-        .as_str(),
+            .as_str(),
         "",
-        );
+    );
 
     // Truncate message to ||
     if let Some(index) = modified_content.find(" ||") {
@@ -267,14 +267,14 @@ pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
     let ratio_file = format!("{:?}-ratios.json", guild);
 
     // Open the json file for writing, nuking any previous contents
-    let file_result = OpenOptions::new()
-        .read(true)
-        .open(ratio_file.as_str());
+    let file_result = OpenOptions::new().read(true).open(ratio_file.as_str());
 
     match file_result { //If it errors here, it's probably because the file doesn't exist
         Err(_) => {
             let mut file_handle = File::create(ratio_file).expect("Could not create ratios file.");
-            file_handle.write_all(b"{}").expect("Got error writing to newly created json file."); //Write empty json object to it
+            file_handle.write_all(b"{}").expect(
+                "Got error writing to newly created json file.",
+            ); //Write empty json object to it
 
             return JsonValue::new_object(); //Return empty database
         }
@@ -283,7 +283,7 @@ pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut data = String::new();
             file.read_to_string(&mut data).expect(
                 "Something went wrong reading the ratios file.",
-                );
+            );
 
             let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -291,7 +291,10 @@ pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
 
             if let Err(_) = result {
                 make_log_entry("Unable to parse json from ratios file.".to_owned(), "Error");
-                say_into_chat(&message, "Sorry, I couldn't read the database for this server.");
+                say_into_chat(
+                    &message,
+                    "Sorry, I couldn't read the database for this server.",
+                );
                 return JsonValue::new_object();
             } else {
                 return result.unwrap();

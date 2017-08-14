@@ -35,7 +35,7 @@ command!(ratios(_context, message) {
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
     if let Err(error) = result {
-        println!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump());
+        make_log_entry(format!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump()), "Error");
         let _ = send_error_embed(&message, "Failed to get ratio list. Either something went wrong, or no ratios are defined.");
     }
 });
@@ -82,8 +82,13 @@ command!(ratio_get(_context, message) {
                 possiblities.push(key);
             }
         }
-        // TODO make the output of this better
-        send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{:#?}", request, possiblities).as_str());
+        let possiblities_pretty = String::from(format!("{:?}", possiblities)).replace("[", "").replace("]", "");
+        if let Err(_) = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{}",
+                                                           request,
+                                                           possiblities_pretty
+                                                          ).as_str()) {
+            say_into_chat(&message, format!("Unable to make embed, using fallback list: {:#?}", possiblities)) ;
+        }
     } else { // Key is found literally
         // Build message
         say_into_chat(&message, format!("Ratio for {}:\n{}", request, parsed_json[&request].as_str().unwrap()));
@@ -161,11 +166,14 @@ pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
 
     // Write json to file
     if let Err(error) = value.write(&mut file) {
-        make_log_entry(format!(
-            "Error writing to json file,
+        make_log_entry(
+            format!(
+                "Error writing to json file,
             aborting with error: {:?}",
-            error
-        ), "Error");
+                error
+            ),
+            "Error",
+        );
     } else {
         make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
     }
