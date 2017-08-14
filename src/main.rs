@@ -74,7 +74,8 @@ fn main() {
                    .command("uptime", |c| c
                             .desc("Prints out info about the bot's uptime, and system status.")
                             .known_as("status")
-                            .bucket("slowly")
+                            .help_available(false)
+                            .owners_only(true)
                             .exec(uptime))
                    .command("host", |c| c
                             .desc("Prints out info about the host's uptime, and system info.")

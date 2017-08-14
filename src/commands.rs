@@ -68,9 +68,35 @@ command!(info(_context, message) {
 /// Prints current system status, including uptime
 /// of the bot into chat.
 command!(uptime(_context, message) {
-    if let Ok(result) = Command::new("uptime").output() {
-        reply_into_chat(&message, String::from_utf8(result.stdout).unwrap());
+    // Run commands and check results
+    if let Ok(uptime_result) = Command::new("uptime").output() {
+        if let Ok(mem_result) = Command::new("free").arg("-ht").output() {
+            let uptime_result = String::from_utf8(uptime_result.stdout).unwrap();
+            let mem_result = String::from_utf8(mem_result.stdout).unwrap();
+
+            // Make embed reply
+            let _ = message.channel_id.send_message(|a| a
+                                                    .embed(|b| b
+                                                           .title("Status")
+                                                           .description("Current bot status:")
+
+                                                           .field(|c| c
+                                                                  .name("Uptime")
+                                                                  .value(format!("```{}```", uptime_result).as_str())
+                                                                 )
+                                                           .field(|c| c
+                                                                  .name("Memory")
+                                                                  .value(format!("```{}```", mem_result).as_str())
+                                                                 )
+                                                           .timestamp(message.timestamp.to_rfc3339())
+                                                           .color(Colour::from_rgb(255, 255, 255))
+                                                          ));
+        } else {
+            say_into_chat(&message, "Sorry, an error occured on my host.");
+            make_log_entry("Unable to run uptime command.".to_owned(), "Error");
+        }
     } else {
+        say_into_chat(&message, "Sorry, an error occured on my host.");
         make_log_entry("Unable to run uptime command.".to_owned(), "Error");
     }
 });
@@ -183,7 +209,7 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
 
 /// Replies a message into chat, pinging the original summoner.
 pub fn reply_into_chat<T>(message: &Message, speech: T)
-where
+    where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
@@ -192,16 +218,16 @@ where
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-            ),
-            "Error",
-        );
+                ),
+                "Error",
+                );
     }
 }
 
 /// Says a message into chat. Takes the Message object of the event,
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
-where
+    where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
@@ -210,9 +236,9 @@ where
                 "Unable to send reply message: {}. Error is {}",
                 speech,
                 error
-            ),
-            "Error",
-        );
+                ),
+                "Error",
+                );
     }
 }
 
@@ -222,9 +248,9 @@ pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
 
     let mut modified_content = message.replace(command, "").replace(
         get_prefix_for_guild(&msg)
-            .as_str(),
+        .as_str(),
         "",
-    );
+        );
 
     // Truncate message to ||
     if let Some(index) = modified_content.find(" ||") {
@@ -241,7 +267,7 @@ pub fn get_ratio_json() -> JsonValue {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(
         "Something went wrong reading the ratios file.",
-    );
+        );
 
     let data = data.trim(); //Remove the newline from the end of the string if present
 
