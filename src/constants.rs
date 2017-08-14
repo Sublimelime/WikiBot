@@ -11,8 +11,7 @@ lazy_static! {
     pub static ref PREFIXES: Arc<Mutex<HashMap<GuildId, String>>> = Arc::new(Mutex::new(HashMap::new()));
 }
 
-//pub static BOT_NAME: &'static str = "WikiBot#3868";
-pub static BOT_NAME: &'static str = "WikiBot-Testing#9671";
+pub static BOT_NAME: &'static str = "WikiBot#3868";
 
 pub fn get_prefix_for_guild(message: &Message) -> String {
     let prefixes = PREFIXES.lock().unwrap();
