@@ -13,6 +13,7 @@ lazy_static! {
 
 pub static BOT_NAME: &'static str = "WikiBot#3868";
 
+/// Gets the current set prefix, given a message from a guild. {{{1
 pub fn get_prefix_for_guild(message: &Message) -> String {
     let prefixes = PREFIXES.lock().unwrap();
     if let Some(pref) = prefixes.get(&message.guild_id().unwrap()) {

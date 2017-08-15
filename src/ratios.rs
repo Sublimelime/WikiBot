@@ -11,7 +11,7 @@ use constants::*;
 use std::fs::OpenOptions;
 use levenshtein::*;
 
-/// Prints out a grand list of all current stored ratios.
+/// Prints out a grand list of all current stored ratios. {{{1
 command!(ratios(_context, message) {
     let parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
@@ -43,7 +43,7 @@ command!(ratios(_context, message) {
     }
 });
 
-/// Adds a ratio to the list of current ratios.
+/// Adds a ratio to the list of current ratios. {{{1
 /// Can only be used by moderators.
 command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
@@ -70,7 +70,7 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
     }
 });
 
-/// Retrieves a ratio from the storage of the bot.
+/// Retrieves a ratio from the storage of the bot. {{{1
 command!(ratio_get(_context, message) {
     let parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
     let request = fix_message(message.content_safe(), "ratios get ", &message);
@@ -106,7 +106,7 @@ command!(ratio_get(_context, message) {
     }
 });
 
-/// Deletes a stored ratio. Administrators only.
+/// Deletes a stored ratio. Administrators only. {{{1
 command!(ratio_delete(_context, message) {
     let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
     let request = fix_message(message.content_safe(), "ratios delete ", &message);
@@ -125,7 +125,7 @@ command!(ratio_delete(_context, message) {
     }
 });
 
-/// Deletes all stored ratios in the registry. Admin only.
+/// Deletes all stored ratios in the registry. Admin only. {{{1
 command!(ratio_deleteall(_context, message) {
     // Clear all the ratios by writing an empty object to the file
     write_ratio_json(JsonValue::new_object(), &message.guild_id().unwrap());
@@ -136,7 +136,7 @@ command!(ratio_deleteall(_context, message) {
 });
 
 
-/// Changes the value of an existant ratio. Administrators only.
+/// Changes the value of an existant ratio. Administrators only. {{{1
 command!(ratio_set(_context, message, _args, name: String, ratio: String) {
     // Reject if they don't use quotes, since the ratio wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || ratio.is_empty() {
@@ -163,7 +163,7 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
     }
 });
 
-///Takes a JsonValue, and writes it to the ratios file.
+///Takes a JsonValue, and writes it to the ratios file. {{{1
 pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
     // Determine file name based on the guild in question
     let ratio_file = format!("{:?}-ratios.json", guild);

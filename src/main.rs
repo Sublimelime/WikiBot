@@ -23,6 +23,7 @@ use commands::*;
 use ratios::*;
 use web_requesting::*;
 
+/// Main function. {{{1
 fn main() {
     let filename = "token.txt";
     let mut file = File::open(filename).expect("Token file not found");
@@ -42,6 +43,7 @@ fn main() {
     // Add managing roles to definition
     is_powerful_perms.insert(Permissions::from_bits_truncate(0x10000000));
 
+    // Configure client with framework {{{2
     client.with_framework(move |f| {
         f.simple_bucket("slowly", 5)
             .simple_bucket("super-slowly", 10)
@@ -209,8 +211,9 @@ fn main() {
             true
         })
     });
+    // }}}2
 
-    // Ready/Resume handlers
+    // Ready/Resume handlers {{{2
     client.on_ready(|ctx, ready| {
         make_log_entry(format!("{} is connected!", ready.user.name), "Status");
         ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
@@ -221,7 +224,7 @@ fn main() {
         ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
     });
 
-    // Init
+    // Init {{{2
     make_log_entry("Now waiting for connection...".to_owned(), "Status");
 
     let _ = client.start(); //Start bot

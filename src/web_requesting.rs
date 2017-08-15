@@ -12,7 +12,7 @@ use self::serenity::utils::Colour;
 use self::serenity::Error;
 use std::io::{BufReader, Read};
 
-/// Requests a link to the newest FFF posted by the devs.
+/// Requests a link to the newest FFF posted by the devs. {{{1
 command!(fff(_context, msg) {
     // Indicate command might take a bit
     let _ = msg.channel_id.broadcast_typing();
@@ -22,6 +22,8 @@ command!(fff(_context, msg) {
     // Clone message, since the original message doesn't stay alive after this function, so
     // can't be passed to the closure
     let message = msg.clone();
+
+    //Spawn thread to handle getting the results {{{2
     thread::spawn(move || {
         // Get rss channel from wube's blog rss url
         if let Ok(response) = reqwest::get("https://www.factorio.com/blog/rss") {
@@ -64,7 +66,7 @@ command!(fff(_context, msg) {
     });
 });
 
-/// Requests the latest version from Wube's servers.
+/// Requests the latest version from Wube's servers. {{{1
 command!(version(_context, msg) {
     // Indicate command might take a bit
     let _ = msg.channel_id.broadcast_typing();
@@ -73,6 +75,8 @@ command!(version(_context, msg) {
     // Clone message, since the original message doesn't stay alive after this function, so
     // can't be passed to the closure
     let message = msg.clone();
+
+    //Spawn thread to handle getting the results {{{2
     let _ = thread::spawn(move || {
         // Vars to hold the results
         let mut latest_stable = String::new();
@@ -109,7 +113,7 @@ command!(version(_context, msg) {
     });
 });
 
-/// Sends an embed that details the latest stable and experimental versions
+/// Sends an embed that details the latest stable and experimental versions {{{1
 fn send_version_embed(
     message: &Message,
     stable: &String,
@@ -126,7 +130,7 @@ fn send_version_embed(
     })
 }
 
-/// Sends the result of the RSS get in an embed. Extracted for code simplicity.
+/// Sends the result of the RSS get in an embed. Extracted for code simplicity. {{{1
 fn send_fff_embed(
     message: &Message,
     update_time: &str,
@@ -147,7 +151,7 @@ fn send_fff_embed(
     })
 }
 
-/// Formats the time we get from an RSS feed into a more pleasant format
+/// Formats the time we get from an RSS feed into a more pleasant format {{{1
 /// Basically truncates the time from the end, and a few other changes
 fn format_rss_time(time: &str) -> String {
     let mut result = String::from(time);

@@ -17,7 +17,7 @@ use std::io::prelude::*;
 use constants::*;
 use self::chrono::Utc as UTC;
 
-/// Your standard ping command, replies with random replies
+/// Your standard ping command, replies with random replies {{{1
 command!(ping(_context, message) {
     let replies = ["Pong!", "Marco!", "Roger!", "I hear ya!",
     "Good day.", "Hello!", "What's up?","I'm alive!",
@@ -33,12 +33,13 @@ command!(ping(_context, message) {
     reply_into_chat(&message, replies[random]);
 });
 
+/// Stops the bot, shutting down the process. {{{1
 command!(stop_process(_context, message) {
     reply_into_chat(&message, "Stopping bot. Goodbye.");
     process::exit(0);
 });
 
-/// Prints various info about the bot itself.
+/// Prints various info about the bot itself. {{{1
 command!(info(_context, message) {
     let mut reply = String::from("A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
     reply.push_str(get_prefix_for_guild(&message).as_str());
@@ -74,7 +75,7 @@ command!(info(_context, message) {
                                                    );
 });
 
-/// Prints current system status, including uptime
+/// Prints current system status, including uptime {{{1
 /// of the bot into chat.
 command!(uptime(_context, message) {
     // Run commands and check results
@@ -110,7 +111,7 @@ command!(uptime(_context, message) {
     }
 });
 
-/// Prints data about the host into the chat.
+/// Prints data about the host into the chat. {{{1
 command!(host(_context, message) {
     use std::env::consts::*;
     let mut uptime = String::new();
@@ -146,7 +147,7 @@ command!(host(_context, message) {
     }
 });
 
-/// Links a page on the wiki.
+/// Links a page on the wiki. {{{1
 command!(page(_context, message) {
     let mut final_message = String::from("https://wiki.factorio.com/");
 
@@ -166,6 +167,7 @@ command!(page(_context, message) {
     say_into_chat(&message, final_message);
 });
 
+/// Creates a link to an older FFF. {{{1
 command!(fff_old(_context, message) {
     let mut final_message = String::from("https://factorio.com/blog/post/fff-");
 
@@ -181,17 +183,17 @@ command!(fff_old(_context, message) {
     reply_into_chat(&message, final_message);
 });
 
-
+// }}}1
 // Functions -----------------
 
-/// Makes a log entry, by prepending the time and date of the entry to what's
+/// Makes a log entry, by prepending the time and date of the entry to what's {{{1
 /// provided to the function.
 pub fn make_log_entry(entry: String, kind: &str) {
     let timestamp: String = UTC::now().to_rfc3339();
     println!("[{} at {}] {}", kind, timestamp, entry);
 }
 
-/// Sends a simple error embed. Provide the reason for erroring.
+/// Sends a simple error embed. Provide the reason for erroring. {{{1
 pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
@@ -203,7 +205,7 @@ pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Mes
     })
 }
 
-/// Sends a simple success embed, with provided description.
+/// Sends a simple success embed, with provided description. {{{1
 pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
@@ -216,7 +218,7 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
 }
 
 
-/// Replies a message into chat, pinging the original summoner.
+/// Replies a message into chat, pinging the original summoner. {{{1
 pub fn reply_into_chat<T>(message: &Message, speech: T)
 where
     T: Display,
@@ -233,7 +235,7 @@ where
     }
 }
 
-/// Says a message into chat. Takes the Message object of the event,
+/// Says a message into chat. Takes the Message object of the event, {{{1
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
 where
@@ -251,7 +253,7 @@ where
     }
 }
 
-/// Corrects a message, removing the command from it, and truncating
+/// Corrects a message, removing the command from it, and truncating {{{1
 /// everything after ||
 pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
 
@@ -272,7 +274,7 @@ pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
     modified_content
 }
 
-/// Opens the ratios file, and returns the Json object contained
+/// Opens the ratios file, and returns the Json object contained {{{1
 /// within it. Returns a JsonValue
 pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
     // Determine file name based on the guild in question

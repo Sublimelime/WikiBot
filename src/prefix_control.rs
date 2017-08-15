@@ -3,7 +3,7 @@
 use constants::*;
 use commands::*;
 
-/// Registers a prefix for the guild that it's used in.
+/// Registers a prefix for the guild that it's used in. {{{1
 command!(register_prefix(_c, m, args) {
     let prefix = args.join(" ");
     let mut prefixes = PREFIXES.lock().unwrap();
