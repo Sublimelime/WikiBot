@@ -90,10 +90,10 @@ command!(version(_context, msg) {
                 // Horrible hack to find latest version
                 // FIXME: Ask hanziq about getting latest versions without auth
                 if let Some(loc) = html.find("Stable:") {
-                    latest_stable = html[loc+8..loc+15].to_owned();
+                    latest_stable = get_stable_version_string(loc, &html);
                 }
                 if let Some(loc) = html.find("Experimental:") {
-                    latest_experimental = html[loc+14..loc+21].to_owned();
+                    latest_experimental = get_experimental_version_string(loc, &html);
                 }
             } else {
                 say_into_chat(&message, fail_message);
@@ -118,7 +118,7 @@ fn send_version_embed(
     message: &Message,
     stable: &String,
     experimental: &String,
-) -> Result<Message, Error> {
+    ) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("Latest version:")
@@ -136,16 +136,16 @@ fn send_fff_embed(
     update_time: &str,
     link: &str,
     number: u32,
-) -> Result<Message, Error> {
+    ) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("FFF Results:")
                 .field(|f| {
                     f.name(
                         format!("{}: #{}", format_rss_time(update_time).as_str(), number).as_str(),
-                    ).value(link)
+                        ).value(link)
                 })
-                .timestamp(message.timestamp.to_rfc3339())
+            .timestamp(message.timestamp.to_rfc3339())
                 .color(Colour::from_rgb(200, 100, 10))
         })
     })
@@ -160,4 +160,74 @@ fn format_rss_time(time: &str) -> String {
         result.truncate(index as usize);
     }
     format!("Date: {}", result)
+}
+
+/// Slices html location to find stable version. {{{1
+fn get_stable_version_string(loc: usize, html: &str) -> String {
+    html[loc+8..loc+15].to_owned()
+}
+
+/// Slices html location to find stable version. {{{1
+fn get_experimental_version_string(loc: usize, html: &str) -> String {
+    html[loc+14..loc+21].to_owned()
+}
+
+// Tests {{{1
+#[cfg(test)]
+mod tests {
+    extern crate reqwest;
+    extern crate atom_syndication;
+
+    use super::*;
+    use std::io::BufReader;
+    use self::atom_syndication::Feed;
+
+    // Tests if getting and parsing the blog rss still works. {{{2
+    #[test]
+    fn can_get_and_parse_blog_rss() {
+        // Get rss object
+        let response = reqwest::get("https://www.factorio.com/blog/rss").unwrap();
+        let reader = BufReader::new(response);
+        // Read into a parseable format
+        let feed = Feed::read_from(reader).unwrap();
+        let latest_entry = feed.entries().first().unwrap();
+        let update_time = latest_entry.updated();
+        let link = latest_entry.links().first().unwrap().href();
+        let number: u32 = link[link.len() - 3 ..].parse().unwrap();
+
+        assert!(link.contains("https://www.factorio.com/blog/post/fff-")); //Make sure link is valid
+        assert!(number > 200); //It should be at least 200, since that's the latest number rounded down
+        assert!(update_time.contains("2017")); //Makes sense, if the rss is up-to-date
+    }
+
+    // Tests if getting and parsing the html still works. {{{2
+    // this should only fail if they change their main page html
+    #[test]
+    fn can_get_and_parse_current_version() {
+        let mut response = reqwest::get("https://www.factorio.com").unwrap();
+        let mut html = String::new();
+        let mut latest_stable = String::new();
+        let mut latest_experimental = String::new();
+        response.read_to_string(&mut html).unwrap();
+        if let Some(loc) = html.find("Stable:") {
+            latest_stable = get_stable_version_string(loc, &html);
+        } else {
+            panic!("Couldn't find Stable: field in html.")
+        }
+        if let Some(loc) = html.find("Experimental:") {
+            latest_experimental = get_experimental_version_string(loc, &html);
+        } else {
+            panic!("Couldn't find Experimental: field in html.")
+        }
+
+        assert_ne!(latest_stable, String::from(""));
+        assert_ne!(latest_experimental, String::from(""));
+
+        //Should find no html
+        assert!(!latest_stable.contains("<"));
+        assert!(!latest_experimental.contains("<"));
+        assert!(!latest_stable.contains(">"));
+        assert!(!latest_experimental.contains(">"));
+
+    }
 }

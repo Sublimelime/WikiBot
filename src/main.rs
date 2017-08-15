@@ -26,7 +26,7 @@ use web_requesting::*;
 /// Main function. {{{1
 fn main() {
     let filename = "token.txt";
-    let mut file = File::open(filename).expect("Token file not found");
+    let mut file = File::open(filename).expect("Token file not found.");
 
     let mut token = String::new();
     file.read_to_string(&mut token).expect(

@@ -17,16 +17,7 @@ command!(ratios(_context, message) {
 
     let mut embed_content = String::new();
 
-    for entry in parsed_json.entries() {
-        //Destructure the tuple to make code easier
-        let (key, _value) = entry;
-
-        //Change from proprietary format into native
-        embed_content += format!("{}, ", key).as_str();
-    }
-    if embed_content.len() > 3 {
-        embed_content = String::from(&embed_content[..embed_content.len()-2]);
-    }
+    embed_content = jsonvalue_as_comma_list(&parsed_json);
 
     //Send the message with embed
     let result = message.channel_id.send_message(|a| a
@@ -182,11 +173,53 @@ pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-                error
+            error
             ),
             "Error",
-        );
+            );
     } else {
         make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
+    }
+}
+
+/// Takes a JsonValue, and returns a string of all the keys {{{1
+/// in a comma seperated list.
+fn jsonvalue_as_comma_list(json_value: &JsonValue) -> String {
+    let mut result = String::new();
+    for entry in json_value.entries() {
+        //Destructure the tuple to make code easier
+        let (key, _value) = entry;
+
+        //Change from proprietary format into native
+        result += format!("{}, ", key).as_str();
+    }
+
+    // Remove comma from end if able
+    if result.len() > 3 {
+        result = String::from(&result[..result.len()-2]);
+    }
+    result
+}
+
+// Tests {{{1
+#[cfg(test)]
+mod tests {
+    extern crate json;
+    use self::json::JsonValue;
+    use super::*;
+
+    // Tests if code can read a list of keys and make a nice list {{{2
+    #[test]
+    fn can_parse_json_into_list() {
+        let mut testing_object = JsonValue::new_object();
+        // push some values to the object
+        testing_object["first"] = "value".into();
+        testing_object["second"] = "value".into();
+        testing_object["third"] = "value".into();
+        testing_object["fourth"] = "value".into();
+
+        let listed = jsonvalue_as_comma_list(&testing_object);
+        // Test if the result is what we want
+        assert_eq!(listed, "first, second, third, fourth");
     }
 }

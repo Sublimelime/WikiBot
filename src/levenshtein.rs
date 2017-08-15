@@ -28,7 +28,6 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
         cache[index_a - 1] = index_a;
     }
 
-    /* Loop. */
     for (index_b, code_b) in b.chars().enumerate() {
         result = index_b;
         distance_a = index_b;
@@ -61,4 +60,21 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     }
 
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn levenshtein_zero_distance() {
+        let result = levenshtein("test", "test");
+        assert_eq!(result, 0);
+    }
+
+    #[test]
+    fn levenshtein_distance_calc() {
+        let result = levenshtein("some string", "completely different");
+        assert!(result == 14);
+    }
 }
