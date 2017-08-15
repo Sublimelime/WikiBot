@@ -61,8 +61,8 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
             // Write it back to the file
             write_ratio_json(parsed_json, &message.guild_id().unwrap());
 
-            if let Err(_) = send_success_embed(&message, format!("Success, added ratio {} for concept {}.", ratio, name).as_str()) {
-                say_into_chat(&message, format!("Success, added ratio {} for concept {}.", ratio, name));
+            if let Err(_) = send_success_embed(&message, format!("Success, added ratio `{}` for concept `{}`.", ratio, name).as_str()) {
+                say_into_chat(&message, format!("Success, added ratio `{}` for concept `{}`.", ratio, name));
             }
         } else {
             let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name. Try using ```ratio set``` instead, or removing it.");
