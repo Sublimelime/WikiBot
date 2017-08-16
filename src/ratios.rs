@@ -176,10 +176,10 @@ pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-            error
+                error
             ),
             "Error",
-            );
+        );
     } else {
         make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
     }
@@ -199,7 +199,7 @@ fn jsonvalue_as_comma_list(json_value: &JsonValue) -> String {
 
     // Remove comma from end if able
     if result.len() > 3 {
-        result = String::from(&result[..result.len()-2]);
+        result = String::from(&result[..result.len() - 2]);
     }
     result
 }

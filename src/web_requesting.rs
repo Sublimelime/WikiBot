@@ -118,7 +118,7 @@ fn send_version_embed(
     message: &Message,
     stable: &String,
     experimental: &String,
-    ) -> Result<Message, Error> {
+) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("Latest version:")
@@ -136,16 +136,16 @@ fn send_fff_embed(
     update_time: &str,
     link: &str,
     number: u32,
-    ) -> Result<Message, Error> {
+) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("FFF Results:")
                 .field(|f| {
                     f.name(
                         format!("{}: #{}", format_rss_time(update_time).as_str(), number).as_str(),
-                        ).value(link)
+                    ).value(link)
                 })
-            .timestamp(message.timestamp.to_rfc3339())
+                .timestamp(message.timestamp.to_rfc3339())
                 .color(Colour::from_rgb(200, 100, 10))
         })
     })
@@ -164,12 +164,12 @@ fn format_rss_time(time: &str) -> String {
 
 /// Slices html location to find stable version. {{{1
 fn get_stable_version_string(loc: usize, html: &str) -> String {
-    html[loc+8..loc+15].to_owned()
+    html[loc + 8..loc + 15].to_owned()
 }
 
 /// Slices html location to find stable version. {{{1
 fn get_experimental_version_string(loc: usize, html: &str) -> String {
-    html[loc+14..loc+21].to_owned()
+    html[loc + 14..loc + 21].to_owned()
 }
 
 // Tests {{{1
@@ -193,7 +193,7 @@ mod tests {
         let latest_entry = feed.entries().first().unwrap();
         let update_time = latest_entry.updated();
         let link = latest_entry.links().first().unwrap().href();
-        let number: u32 = link[link.len() - 3 ..].parse().unwrap();
+        let number: u32 = link[link.len() - 3..].parse().unwrap();
 
         assert!(link.contains("https://www.factorio.com/blog/post/fff-")); //Make sure link is valid
         assert!(number > 200); //It should be at least 200, since that's the latest number rounded down
