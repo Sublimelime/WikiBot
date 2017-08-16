@@ -31,7 +31,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-    );
+        );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
@@ -190,7 +190,7 @@ fn main() {
                                  .on_dispatch_error(|_ctx, msg, error| {
                                      match error {
                                          DispatchError::RateLimited(seconds) => {
-                                             make_log_entry("Bot is being rate limited, or user triggered bucket.".to_owned(), "Status");
+                                             make_log_entry("User triggered ratelimit bucket.".to_owned(), "Status");
                                              say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
                                          }
                                          DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
@@ -217,6 +217,11 @@ fn main() {
     client.on_ready(|ctx, ready| {
         make_log_entry(format!("{} is connected!", ready.user.name), "Status");
         ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
+        // List current servers into log
+        println!("{} is now online in the following guilds:", ready.user.name);
+        for entry in ready.guilds.iter() {
+            println!("ID: {}", entry.id());
+        }
     });
 
     client.on_resume(|ctx, _res| {
