@@ -41,8 +41,9 @@ command!(stop_process(_context, message) {
 
 /// Prints various info about the bot itself. {{{1
 command!(info(_context, message) {
+    let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
     let mut reply = String::from("A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
-    reply.push_str(get_prefix_for_guild(&message).as_str());
+    reply.push_str(server_prefix.as_str());
     reply.push_str("help. All commands that do not take arguments support talking after the commands with ||, commands that take arguments support it if it says so in help.
                    \nThanks, and enjoy! For info about the host of this bot, run the `host` command.");
     let _ = message.channel_id.send_message(|a| a
@@ -67,7 +68,7 @@ command!(info(_context, message) {
                                                          )
                                                    .field(|c| c
                                                           .name("Local prefix")
-                                                          .value(get_prefix_for_guild(&message).as_str())
+                                                          .value(server_prefix.as_str())
                                                          )
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
@@ -150,13 +151,14 @@ command!(host(_context, message) {
 /// Links a page on the wiki. {{{1
 command!(page(_context, message) {
     let mut final_message = String::from("https://wiki.factorio.com/");
+    let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
 
     // Remove command from message content, and code-ify it
     let mut modified_content = String::new();
-    if message.content_safe().starts_with(format!("{}page", get_prefix_for_guild(&message)).as_str()) {
-        modified_content = fix_message(message.content_safe(), "page ", &message);
-    } else if message.content_safe().starts_with(format!("{}link", get_prefix_for_guild(&message)).as_str()) {
-        modified_content = fix_message(message.content_safe(), "link ", &message);
+    if message.content_safe().starts_with(format!("{}page", server_prefix).as_str()) {
+        modified_content = fix_message(message.content_safe(), "page ", &server_prefix);
+    } else if message.content_safe().starts_with(format!("{}link", server_prefix).as_str()) {
+        modified_content = fix_message(message.content_safe(), "link ", &server_prefix);
     }
 
     modified_content = modified_content.replace(" ", "_");
@@ -170,13 +172,14 @@ command!(page(_context, message) {
 /// Creates a link to an older FFF. {{{1
 command!(fff_old(_context, message) {
     let mut final_message = String::from("https://factorio.com/blog/post/fff-");
+    let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
 
     let mut modified_content = String::new();
 
-    if message.content_safe().starts_with(format!("{}fff-old", get_prefix_for_guild(&message)).as_str()) {
-        modified_content = fix_message(message.content_safe(), "fff-old ", &message);
-    } else if message.content_safe().starts_with(format!("{}blog-old", get_prefix_for_guild(&message)).as_str()) {
-        modified_content = fix_message(message.content_safe(), "blog-old ", &message);
+    if message.content_safe().starts_with(format!("{}fff-old", server_prefix).as_str()) {
+        modified_content = fix_message(message.content_safe(), "fff-old ", &server_prefix);
+    } else if message.content_safe().starts_with(format!("{}blog-old", server_prefix).as_str()) {
+        modified_content = fix_message(message.content_safe(), "blog-old ", &server_prefix);
     }
 
     final_message.push_str(modified_content.as_str());
@@ -255,13 +258,9 @@ where
 
 /// Corrects a message, removing the command from it, and truncating {{{1
 /// everything after ||
-pub fn fix_message(message: String, command: &str, msg: &Message) -> String {
+pub fn fix_message(message: String, command: &str, prefix: &str) -> String {
 
-    let mut modified_content = message.replace(command, "").replace(
-        get_prefix_for_guild(&msg)
-            .as_str(),
-        "",
-    );
+    let mut modified_content = message.replace(command, "").replace(prefix, "");
 
     modified_content = modified_content.replace(format!("@{}", BOT_NAME).as_str(), "");
     modified_content = modified_content.trim().to_owned();
@@ -314,5 +313,16 @@ pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
                 return result.unwrap();
             }
         }
+    }
+}
+
+// Tests {{{1
+#[cfg(test)]
+mod tests {
+    use super::fix_message;
+    #[test]
+    fn can_fix_messages_correctly() {
+        let message = String::from("+ratios get steam");
+        assert_eq!("steam", fix_message(message, "ratios get ", "+"))
     }
 }

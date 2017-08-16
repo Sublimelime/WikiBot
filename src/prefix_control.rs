@@ -22,3 +22,27 @@ command!(register_prefix(_c, m, args) {
     }
     make_log_entry(format!("Changed prefix of server id {:?}, to new prefix {}", guild_id, prefix), "Prefix");
 });
+
+// Tests {{{1
+#[cfg(test)]
+mod tests {
+    extern crate serenity;
+
+    use constants::*;
+    use self::serenity::model::GuildId;
+
+    #[test]
+    fn guild_can_change_prefix() {
+        //Setup vars
+        let mut prefixes = PREFIXES.lock().unwrap();
+        let id = GuildId::from(222222222222222222);
+        let _ = prefixes.insert(id, String::from("-"));
+
+        if let Some(old) = prefixes.insert(id, String::from("+")) {
+            assert_eq!(old, "-");
+        } else {
+            panic!("Failed to realize that a prefix had already been set.")
+        }
+    }
+
+}
