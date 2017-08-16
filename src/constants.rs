@@ -39,9 +39,11 @@ mod tests {
     #[test]
     fn adding_a_prefix_to_a_guild_id() {
         //Setup vars
-        let mut prefixes = PREFIXES.lock().unwrap();
         let id = GuildId::from(111111111111111111);
-        let _ = prefixes.insert(id, String::from("+"));
+        {
+            let mut prefixes = PREFIXES.lock().unwrap();
+            let _ = prefixes.insert(id, String::from("+"));
+        }
 
         let prefix = get_prefix_for_guild(&id);
 
