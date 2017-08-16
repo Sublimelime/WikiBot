@@ -17,11 +17,13 @@ mod levenshtein;
 mod web_requesting;
 mod constants;
 mod prefix_control;
+mod recipe_system;
 
 use prefix_control::*;
 use commands::*;
 use ratios::*;
 use web_requesting::*;
+use recipe_system::*;
 
 /// Main function. {{{1
 fn main() {
@@ -64,7 +66,7 @@ fn main() {
                        .owners(vec![UserId(152193207726243840)].into_iter().collect()) //setup author to be owner
 
                       )
-            // META GROUP -------------------------
+            // META GROUP ------------------------- {{{3
             .group("Meta", |g| g
                    .command("ping", |c|
                             c.desc("Replies to the ping with a message. Used to check if the bot is working.")
@@ -90,7 +92,7 @@ fn main() {
                             .bucket("super-slowly")
                             .exec(host))
                    .command("help", |c| c.exec_help(help_commands::with_embeds)))
-                   // CONFIG GROUP -----------------------
+                   // CONFIG GROUP ----------------------- {{{3
                    .group("Config", |g| g
                           .command("prefix", |c| c
                                    .desc("Registers/Changes a prefix on this server.
@@ -102,7 +104,7 @@ fn main() {
                                    .help_available(true)
                                    .exec(register_prefix))
                          )
-                   // WIKI GROUP -------------------------
+                   // WIKI GROUP ------------------------- {{{3
                    .group("Wiki", |g| g
                           .command("page", |c|
                                    c.desc("Takes a page name, and prints out a link to the wiki of that page.
@@ -131,8 +133,13 @@ fn main() {
                                    .min_args(1)
                                    .known_as("blog-old")
                                    .exec(fff_old))
+                          .command("recipe", |c| c
+                                   .desc("Returns a recipe of an item, machine, or technology.")
+                                   .help_available(true)
+                                   .example("beacon")
+                                   .exec(recipe))
                           )
-                          // RATIOS GROUP --------------------------
+                          // RATIOS GROUP -------------------------- {{{3
                           .group("Ratios", |g| g
                                  .prefix("ratios")
                                  .command("list", |c|
@@ -187,6 +194,7 @@ fn main() {
                                           .usage("\"name\" \"new value\"")
                                           .exec(ratio_set))
                                  )
+                                 // DISPATCH ERRORS ----------------------------- {{{3
                                  .on_dispatch_error(|_ctx, msg, error| {
                                      match error {
                                          DispatchError::RateLimited(seconds) => {
