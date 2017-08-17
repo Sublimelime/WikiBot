@@ -145,13 +145,12 @@ fn main() {
                           )
                           // RATIOS GROUP -------------------------- {{{3
                           .group("Ratios", |g| g
-                                 .prefix("ratios")
-                                 .command("list", |c|
+                                 .command("ratio-list", |c|
                                           c.desc("Returns a list of all registered ratios.")
                                           .help_available(true)
                                           .bucket("super-slowly")
                                           .exec(ratios))
-                                 .command("add", |c| c
+                                 .command("ratio-add", |c| c
                                           .desc("Adds a ratio to the list of created ratios.
                                   \nProvide a name for the ratio, and the ratio itself. Quotes are required around each arg.
                                   \n Can only be used by moderators.")
@@ -164,7 +163,7 @@ fn main() {
                                           .usage("\"name\" \"ratio\"")
                                           .exec(ratio_add))
 
-                                 .command("get", |c| c
+                                 .command("ratio-get", |c| c
                                           .desc("Retrieves a ratio and prints it into chat.
                                   \nProvide a name for the ratio to get.
                                   \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
@@ -173,7 +172,7 @@ fn main() {
                                           .usage("name")
                                           .help_available(true)
                                           .exec(ratio_get))
-                                 .command("delete", |c| c
+                                 .command("ratio-delete", |c| c
                                           .desc("Deletes a ratio. Can only be used by moderators.")
                                           .min_args(1)
                                           .example("steam")
@@ -181,13 +180,13 @@ fn main() {
                                           .required_permissions(is_powerful_perms)
                                           .usage("name")
                                           .exec(ratio_delete))
-                                 .command("deleteall", |c| c
+                                 .command("ratio-deleteall", |c| c
                                           .desc("Deletes all ratios. Can only be used by moderators.")
                                           .known_as("clear")
                                           .required_permissions(is_powerful_perms)
                                           .help_available(true)
                                           .exec(ratio_deleteall))
-                                 .command("set", |c| c
+                                 .command("ratio-set", |c| c
                                           .desc("Sets an existant ratio to a different value. Can only be used by moderators.")
                                           .min_args(2)
                                           .max_args(2)
