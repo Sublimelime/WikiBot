@@ -140,6 +140,7 @@ fn main() {
                           .command("recipe", |c| c
                                    .desc("Returns a recipe of an item, machine, or technology.")
                                    .help_available(true)
+                                   .bucket("super-slowly")
                                    .example("beacon")
                                    .exec(recipe))
                           )
@@ -202,7 +203,7 @@ fn main() {
                                      match error {
                                          DispatchError::RateLimited(seconds) => {
                                              make_log_entry("User triggered ratelimit bucket.".to_owned(), "Status");
-                                             say_into_chat(&msg, format!("Slow down there partner! Try this command again in {} seconds.", seconds));
+                                             say_into_chat(&msg, format!("Woah! This command is hard for me to do, could you try again in {} seconds? :sweat_smile:", seconds));
                                          }
                                          DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
                                              let _ = send_error_embed(&msg, "Sorry, you don't have permission to do that.");

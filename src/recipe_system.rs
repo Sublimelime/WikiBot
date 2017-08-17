@@ -5,6 +5,7 @@ use self::json::*;
 use std::fs::File;
 use std::collections::BTreeMap;
 use std::io::Read;
+use self::serenity::utils::Colour;
 use commands::*;
 use constants::*;
 use levenshtein::*;
@@ -35,19 +36,24 @@ command!(recipe(_context, message) {
         say_into_chat(&message, "Sorry, I couldn't get a list of recipes in the game correctly. This command isn't going to work.");
     } else {
         let _ = message.channel_id.broadcast_typing();
-        let request = fix_message(message.content_safe(), "recipe ", &get_prefix_for_guild(&message.guild_id().unwrap()));
+        let request = fix_message(message.content_safe(), "recipe", &get_prefix_for_guild(&message.guild_id().unwrap()));
+
+        //Bail out if there's no argument
+        if request == "" {
+            say_into_chat(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
+            return Ok(());
+        }
+
+        // Find the closest match to what they asked for
         let (dist, closest_match) = get_closest_match(&request);
 
         // If it wasn't an exact match
         if dist != 0 {
-
-
-        } else {
             let result = message.channel_id.send_message(|a| a
                                                          .embed(|b| b
-                                                                .title(&format!("Recipe for {}", closest_match["wiki-name"]))
+                                                                .title(&format!("Recipe for {}: (closest, distance {})", closest_match["wiki-name"], dist))
                                                                 .field(|c| c
-                                                                       .name("Required crafting energy")
+                                                                       .name("Crafting time")
                                                                        .value(&format!("{}", closest_match["energy-required"])))
                                                                 .field(|c| c
                                                                        .name("Inputs")
@@ -55,9 +61,32 @@ command!(recipe(_context, message) {
                                                                 .field(|c| c
                                                                        .name("Outputs")
                                                                        .value(&serialize_recipe_io(&closest_match["outputs"])))
+                                                                .timestamp(message.timestamp.to_rfc3339())
+                                                                .color(Colour::from_rgb(10, 225, 249))
                                                                )
                                                         );
-            if let Err(error) = result {
+            if let Err(_) = result {
+                say_into_chat(&message, "Sorry, I couldn't make an embed here. Contact an admin.");
+            }
+
+        } else {
+            let result = message.channel_id.send_message(|a| a
+                                                         .embed(|b| b
+                                                                .title(&format!("Recipe for {}:", closest_match["wiki-name"]))
+                                                                .field(|c| c
+                                                                       .name("Crafting time")
+                                                                       .value(&format!("{}", closest_match["energy-required"])))
+                                                                .field(|c| c
+                                                                       .name("Inputs")
+                                                                       .value(&serialize_recipe_io(&closest_match["inputs"])))
+                                                                .field(|c| c
+                                                                       .name("Outputs")
+                                                                       .value(&serialize_recipe_io(&closest_match["outputs"])))
+                                                                .timestamp(message.timestamp.to_rfc3339())
+                                                                .color(Colour::from_rgb(10, 225, 249))
+                                                               )
+                                                        );
+            if let Err(_) = result {
                 say_into_chat(&message, "Sorry, I couldn't make an embed here. Contact an admin.");
             }
         }
@@ -66,11 +95,11 @@ command!(recipe(_context, message) {
 
 // Functions {{{1
 /// Gets the closest key match in RECIPES using levenshtein distance. {{{2
-fn get_closest_match(request: &str) -> (usize, JsonValue) {
+fn get_closest_match(request: &str) -> (usize, &JsonValue) {
 
     // Quick exit
     if RECIPES.has_key(request) {
-        return (0, RECIPES[request].clone());
+        return (0, &RECIPES[request]);
     }
     let mut possiblities = BTreeMap::new();
 
@@ -81,14 +110,29 @@ fn get_closest_match(request: &str) -> (usize, JsonValue) {
     }
     //return the smallest key, unwrap because there should be a value
     let (dist, smallest) = possiblities.iter_mut().next().unwrap();
-    return (*dist, smallest.clone());
+    return (*dist, smallest);
 
 }
 
 /// Serializes the inputs or outputs object it recieves into a nice list. {{{2
 fn serialize_recipe_io(value: &JsonValue) -> String {
-String::new()
-
+    if value.is_empty() {
+        return String::from("None");
+    }
+    let mut result = String::new();
+    for entry in value.entries() {
+        let (ing_key, ingredient) = entry;
+        let mut pretty_name = format!("{}", RECIPES[ing_key]["wiki-name"]);
+        // Check if there is a pretty name for the ingredient, otherwise use internal
+        if pretty_name == "null" {
+            pretty_name = String::from(ing_key);
+        }
+        result += &format!("{} x{}, ", pretty_name, ingredient);
+    }
+    if result.len() > 3 {
+        return result[..result.len()-2].to_owned();
+    }
+    result
 }
 
 // Tests {{{1
@@ -116,11 +160,11 @@ mod tests {
     fn can_serialize_recipe_io() {
         let mut testing_object = JsonValue::new_object();
         // Add some values
-        testing_object["copper-plate"] = 2;
-        testing_object["iron-gear-wheel"] = 6;
-        testing_object["raw-wood"] = 10;
+        testing_object["copper-plate"] = 2.into();
+        testing_object["iron-gear-wheel"] = 6.into();
+        testing_object["raw-wood"] = 10.into();
 
         let result = serialize_recipe_io(&testing_object);
-        assert_eq!(result, "Copper plate x2, Iron gear wheel x6, Raw wood x10");
+        assert_eq!(result, "Copper plate x2, Iron gear wheel x6, raw-wood x10");
     }
 }
