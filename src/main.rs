@@ -91,7 +91,11 @@ fn main() {
                             .desc("Prints out info about the host's uptime, and system info.")
                             .bucket("super-slowly")
                             .exec(host))
-                   .command("help", |c| c.exec_help(help_commands::with_embeds)))
+                   .command("help", |c| c
+                            .exec_str("When using ratio commands, the commands in the `Ratios` category all start with `<prefix>ratios`.
+                                      \nAn example usage would be `ratios get`.")
+                            .exec_help(help_commands::with_embeds))
+                   )
                    // CONFIG GROUP ----------------------- {{{3
                    .group("Config", |g| g
                           .command("prefix", |c| c
