@@ -83,16 +83,21 @@ where
 /// Corrects a message, removing the command from it, and truncating {{{1
 /// everything after ||
 pub fn fix_message(message: String, command: &str, prefix: &str) -> String {
-
-    let mut modified_content = message.replace(command, "").replace(prefix, "");
-
-    modified_content = modified_content.replace(format!("@{}", BOT_NAME).as_str(), "");
-    modified_content = modified_content.trim().to_owned();
+    let mut modified_content = message;
 
     // Truncate message to ||
     if let Some(index) = modified_content.find(" ||") {
         modified_content.truncate(index as usize);
     }
+
+    // Remove the command from it, and prefix
+    modified_content = modified_content.replace(command, "").replace(prefix, "");
+
+    // Remove the bot's name, if used via mention
+    modified_content = modified_content.replace(format!("@{}", BOT_NAME).as_str(), "");
+
+    //Trim spaces off
+    modified_content = modified_content.trim().to_owned();
 
     modified_content
 }
@@ -145,8 +150,26 @@ pub fn get_ratio_json(guild: &GuildId, message: &Message) -> JsonValue {
 mod tests {
     use super::fix_message;
     #[test]
-    fn can_fix_messages_correctly() {
+    fn can_fix_messages_with_arg() {
         let message = String::from("+ratios get steam");
         assert_eq!("steam", fix_message(message, "ratios get ", "+"))
+    }
+
+    #[test]
+    fn can_fix_messages_without_arg() {
+        let message = String::from("+ratios get");
+        assert_eq!("", fix_message(message, "ratios get", "+"))
+    }
+
+    #[test]
+    fn can_fix_messages_with_pipes() {
+        let message = String::from("+ratios get steam || Hello, I'm talking after this.");
+        assert_eq!("steam", fix_message(message, "ratios get", "+"))
+    }
+
+    #[test]
+    fn can_fix_messages_without_arg_and_with_pipes() {
+        let message = String::from("+ratios get || Comprehensive test coverage!");
+        assert_eq!("", fix_message(message, "ratios get", "+"))
     }
 }

@@ -66,7 +66,12 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
 /// Retrieves a ratio from the storage of the bot. {{{1
 command!(ratio_get(_context, message) {
     let parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
-    let request = fix_message(message.content_safe(), "ratio-get ", &get_prefix_for_guild(&message.guild_id().unwrap()));
+    let request = fix_message(message.content_safe(), "ratio", &get_prefix_for_guild(&message.guild_id().unwrap()));
+
+    if request.is_empty() {
+        say_into_chat(&message, "Sorry, I was expecting the name of a ratio here. For a list of all ratios, use the `ratios-list` command.");
+        return Ok(());
+    }
 
     // Key is not found, do a levenshtein search to see if they made a typo
     if !parsed_json.has_key(request.as_str()) {

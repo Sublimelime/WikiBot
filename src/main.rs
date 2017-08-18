@@ -140,9 +140,13 @@ fn main() {
                                    .known_as("blog-old")
                                    .exec(fff_old))
                           .command("recipe", |c| c
-                                   .desc("Returns a recipe of an item, machine, or technology.")
+                                   .desc("Returns a recipe of an item, machine, or process.
+                                         \nIf the name of the object isn't internal, it will be autocorrected to the closest match.
+                                         \nThis command uses fancy algorithms to correct names and run, and so can only be used every few seconds.
+                                         \nThis command also supports typing after the command, end the command with two pipes, ||.")
                                    .help_available(true)
                                    .bucket("super-slowly")
+                                   .usage("<some item, process....>")
                                    .example("beacon")
                                    .exec(recipe))
                           )
@@ -166,7 +170,7 @@ fn main() {
                                           .usage("\"name\" \"ratio\"")
                                           .exec(ratio_add))
 
-                                 .command("ratio-get", |c| c
+                                 .command("ratio", |c| c
                                           .desc("Retrieves a ratio and prints it into chat.
                                   \nProvide a name for the ratio to get.
                                   \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
