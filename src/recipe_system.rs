@@ -128,7 +128,7 @@ fn serialize_recipe_io(value: &JsonValue) -> String {
         result += &format!("{} x{}, ", pretty_name, ingredient);
     }
     if result.len() > 3 {
-        return result[..result.len()-2].to_owned();
+        return result[..result.len() - 2].to_owned();
     }
     result
 }
