@@ -69,7 +69,7 @@ command!(ratio_get(_context, message) {
     let request = fix_message(message.content_safe(), "ratio", &get_prefix_for_guild(&message.guild_id().unwrap()));
 
     if request.is_empty() {
-        say_into_chat(&message, "Sorry, I was expecting the name of a ratio here. For a list of all ratios, use the `ratios-list` command.");
+        say_into_chat(&message, "Sorry, I was expecting the name of a ratio here. For a list of all ratios, use the `ratio-list` command.");
         return Ok(());
     }
 
