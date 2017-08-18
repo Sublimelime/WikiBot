@@ -6,7 +6,7 @@ use std::fs::File;
 use std::collections::BTreeMap;
 use std::io::Read;
 use self::serenity::utils::Colour;
-use commands::*;
+use common_funcs::*;
 use constants::*;
 use levenshtein::*;
 
@@ -63,8 +63,7 @@ command!(recipe(_context, message) {
                                                                        .value(&serialize_recipe_io(&closest_match["outputs"])))
                                                                 .timestamp(message.timestamp.to_rfc3339())
                                                                 .color(Colour::from_rgb(10, 225, 249))
-                                                               )
-                                                        );
+                                                               ));
             if let Err(_) = result {
                 say_into_chat(&message, "Sorry, I couldn't make an embed here. Contact an admin.");
             }
@@ -84,8 +83,7 @@ command!(recipe(_context, message) {
                                                                        .value(&serialize_recipe_io(&closest_match["outputs"])))
                                                                 .timestamp(message.timestamp.to_rfc3339())
                                                                 .color(Colour::from_rgb(10, 225, 249))
-                                                               )
-                                                        );
+                                                               ));
             if let Err(_) = result {
                 say_into_chat(&message, "Sorry, I couldn't make an embed here. Contact an admin.");
             }

@@ -11,16 +11,18 @@ use serenity::model::{UserId, Permissions};
 use serenity::framework::{help_commands, DispatchError};
 
 // Other files
-mod commands;
 mod ratios;
 mod levenshtein;
 mod web_requesting;
 mod constants;
 mod prefix_control;
 mod recipe_system;
+mod simple_commands;
+mod common_funcs;
 
 use prefix_control::*;
-use commands::*;
+use simple_commands::*;
+use common_funcs::*;
 use ratios::*;
 use web_requesting::*;
 use recipe_system::*;

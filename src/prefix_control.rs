@@ -1,7 +1,7 @@
 /// Holds command definitions for manipulating prefixes
 
 use constants::*;
-use commands::*;
+use common_funcs::*;
 
 /// Registers a prefix for the guild that it's used in. {{{1
 command!(register_prefix(_c, m, args) {

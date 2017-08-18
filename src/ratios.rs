@@ -6,7 +6,7 @@ use self::json::JsonValue;
 use self::serenity::utils::Colour;
 use self::serenity::model::GuildId;
 
-use commands::*;
+use common_funcs::*;
 use constants::*;
 use std::fs::OpenOptions;
 use levenshtein::*;

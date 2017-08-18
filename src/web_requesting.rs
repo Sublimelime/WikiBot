@@ -4,7 +4,7 @@ extern crate atom_syndication;
 extern crate serenity;
 extern crate reqwest;
 
-use commands::*;
+use common_funcs::*;
 use std::thread;
 use self::atom_syndication::Feed;
 use self::serenity::model::Message;
