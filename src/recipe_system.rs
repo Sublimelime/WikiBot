@@ -40,12 +40,23 @@ command!(recipe(_context, message) {
 
         //Bail out if there's no argument
         if request == "" {
-            say_into_chat(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
+            if let Err(_) = send_error_embed(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.") {
+                say_into_chat(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
+            }
             return Ok(());
         }
 
         // Find the closest match to what they asked for
         let (dist, closest_match) = get_closest_match(&request);
+
+        // Bail out if the distance is too great
+        if dist >= 5 {
+            if let Err(_) = send_error_embed(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?") {
+                say_into_chat(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?");
+            }
+
+            return Ok(());
+        }
 
         // If it wasn't an exact match
         if dist != 0 {
@@ -103,8 +114,11 @@ fn get_closest_match(request: &str) -> (usize, &JsonValue) {
 
     // Add keys to the treemap corresponding to levenshtein distance
     for entry in RECIPES.entries() {
-        let (key, value) = entry;
-        possiblities.insert(levenshtein(request, key), value);
+        let (_key, value) = entry;
+        possiblities.insert(
+            levenshtein(request, &format!("{}", value["wiki-name"])),
+            value,
+        );
     }
     //return the smallest key, unwrap because there should be a value
     let (dist, smallest) = possiblities.iter_mut().next().unwrap();

@@ -167,7 +167,7 @@ fn get_stable_version_string(loc: usize, html: &str) -> String {
     html[loc + 8..loc + 15].to_owned()
 }
 
-/// Slices html location to find stable version. {{{1
+/// Slices html location to find experimental version. {{{1
 fn get_experimental_version_string(loc: usize, html: &str) -> String {
     html[loc + 14..loc + 21].to_owned()
 }
