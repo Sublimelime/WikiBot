@@ -63,8 +63,7 @@ command!(info(_context, message) {
                                                          )
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
-                                                   )
-                                                   );
+                                                   ));
 });
 
 /// Prints current system status, including uptime {{{1
@@ -95,11 +94,11 @@ command!(uptime(_context, message) {
                                                           ));
         } else {
             say_into_chat(&message, "Sorry, an error occured on my host.");
-            make_log_entry("Unable to run uptime command.".to_owned(), "Error");
+            return Err(String::from("Unable to run free command."));
         }
     } else {
         say_into_chat(&message, "Sorry, an error occured on my host.");
-        make_log_entry("Unable to run uptime command.".to_owned(), "Error");
+        return Err(String::from("Unable to run uptime command."));
     }
 });
 
@@ -111,7 +110,7 @@ command!(host(_context, message) {
     if let Ok(result) = Command::new("uptime").arg("-p").output() {
         uptime = String::from_utf8(result.stdout).unwrap();
     } else {
-        make_log_entry("Unable to run uptime command.".to_owned(), "Error");
+        return Err(String::from("Unable to run uptime command."));
     }
     let embed_result = message.channel_id.send_message(|a| a
                                                        .embed(|b| b

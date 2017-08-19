@@ -43,7 +43,7 @@ command!(recipe(_context, message) {
             if let Err(_) = send_error_embed(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.") {
                 say_into_chat(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
             }
-            return Ok(());
+            return Err(String::from("Missing argument, failed."));
         }
 
         // Find the closest match to what they asked for
@@ -55,7 +55,7 @@ command!(recipe(_context, message) {
                 say_into_chat(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?");
             }
 
-            return Ok(());
+            return Err(String::from("Missing recipe, failed."));
         }
 
         // If it wasn't an exact match
@@ -165,7 +165,7 @@ mod tests {
         let request = "baecon";
         let (dist, closest_match) = get_closest_match(request);
         assert_eq!(closest_match["wiki-name"], RECIPES["beacon"]["wiki-name"]);
-        assert_eq!(dist, 2);
+        assert_eq!(dist, 3);
     }
 
     #[test]

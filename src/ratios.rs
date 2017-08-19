@@ -29,8 +29,8 @@ command!(ratios(_context, message) {
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
     if let Err(error) = result {
-        make_log_entry(format!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump()), "Error");
         let _ = send_error_embed(&message, "Failed to get ratio list. Either something went wrong, or no ratios are defined.");
+        return Err(format!("Got error sending list of ratios, error is: {:?}, parsed json is {}", error, parsed_json.dump()));
     }
 });
 
@@ -43,23 +43,25 @@ command!(ratio_add(_context, message, _args, name: String, ratio: String) {
                                         Use ```{}help ratio-add``` for info on how to format this command.",
                                         get_prefix_for_guild(&message.guild_id().unwrap())
                                         ).as_str());
-    } else {
-        let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
+        return Err(String::from("Could not add due to missing quotes or invalid args."));
+    }
+    let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
-        if !parsed_json.has_key(name.as_str()) {
+    if !parsed_json.has_key(name.as_str()) {
 
-            // Add the entry to the json
-            parsed_json[&name] = ratio.clone().into();
+        // Add the entry to the json
+        parsed_json[&name] = ratio.clone().into();
 
-            // Write it back to the file
-            write_ratio_json(parsed_json, &message.guild_id().unwrap());
+        // Write it back to the file
+        write_ratio_json(parsed_json, &message.guild_id().unwrap());
 
-            if let Err(_) = send_success_embed(&message, format!("Success, added ratio `{}` for concept `{}`.", ratio, name).as_str()) {
-                say_into_chat(&message, format!("Success, added ratio `{}` for concept `{}`.", ratio, name));
-            }
-        } else {
-            let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name. Try using ```ratio-set``` instead, or removing it.");
+        if let Err(_) = send_success_embed(&message, format!("Success, added ratio `{}` for concept `{}`.", ratio, name).as_str()) {
+            say_into_chat(&message, format!("Success, added ratio `{}` for concept `{}`.", ratio, name));
         }
+    } else {
+        let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name.
+                                 Try using ```ratio-set``` instead, or removing it.");
+        return Err(String::from("Could not add due to an already existing key for provided ratio."));
     }
 });
 
@@ -70,7 +72,7 @@ command!(ratio_get(_context, message) {
 
     if request.is_empty() {
         say_into_chat(&message, "Sorry, I was expecting the name of a ratio here. For a list of all ratios, use the `ratio-list` command.");
-        return Ok(());
+        return Err(String::from("Invalid args to command."));
     }
 
     // Key is not found, do a levenshtein search to see if they made a typo
@@ -142,6 +144,7 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
                                         Use ```{}help ratio-set``` for info on how to format this command.",
                                         get_prefix_for_guild(&message.guild_id().unwrap())
                                         ).as_str());
+        return Err(String::from("Could not set ratio due to invalid args."));
     } else {
         let mut parsed_json = get_ratio_json(&message.guild_id().unwrap(), &message);
 
@@ -158,6 +161,7 @@ command!(ratio_set(_context, message, _args, name: String, ratio: String) {
             }
         } else {
             let _ = send_error_embed(&message, "Cannot set, key not found in dictionary. Try using ```ratio add``` instead.");
+            return Err(String::from("Could not set ratio due to missing key."));
         }
     }
 });
@@ -181,10 +185,10 @@ pub fn write_ratio_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-                error
+            error
             ),
             "Error",
-        );
+            );
     } else {
         make_log_entry(format!("Wrote to ratio file: {}", ratio_file), "Info");
     }

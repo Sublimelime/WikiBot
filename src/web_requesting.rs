@@ -50,18 +50,22 @@ command!(fff(_context, msg) {
                             reply_into_chat(&message, "Sorry, I was unable to send the results as an embed. Instead, have them plain:");
                             say_into_chat(&message, format!("Latest FFF as of roughly {}:\n{}", update_time, link).as_str());
                         }
-
+                        return Ok(());
                     } else {
                         let _ = send_error_embed(&message, fail_message_rss);
+                        return Err(String::from(fail_message_rss));
                     }
                 } else {
                     let _ = send_error_embed(&message, fail_message_rss);
+                    return Err(String::from(fail_message_rss));
                 }
             } else {
                 let _ = send_error_embed(&message, fail_message);
+                return Err(String::from(fail_message));
             }
         } else {
             let _ = send_error_embed(&message, fail_message);
+            return Err(String::from(fail_message));
         }
     });
 });
@@ -97,9 +101,11 @@ command!(version(_context, msg) {
                 }
             } else {
                 say_into_chat(&message, fail_message);
+                return Err(String::from(fail_message));
             }
         } else {
             say_into_chat(&message, fail_message);
+            return Err(String::from(fail_message));
         }
         if !latest_stable.is_empty() && !latest_experimental.is_empty() {
             if let Err(_) = send_version_embed(&message, &latest_stable, &latest_experimental) {
@@ -107,8 +113,10 @@ command!(version(_context, msg) {
                 say_into_chat(&message, format!("I got a result, but was unable to send an embed of the results.
                               \nInstead, have them plain:\n Latest Stable: {}\nLatest experimental: {}", latest_stable, latest_experimental));
             }
+            return Ok(());
         } else {
             say_into_chat(&message, fail_message);
+            return Err(String::from(fail_message));
         }
     });
 });
@@ -118,7 +126,7 @@ fn send_version_embed(
     message: &Message,
     stable: &String,
     experimental: &String,
-) -> Result<Message, Error> {
+    ) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("Latest version:")
@@ -136,16 +144,16 @@ fn send_fff_embed(
     update_time: &str,
     link: &str,
     number: u32,
-) -> Result<Message, Error> {
+    ) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("FFF Results:")
                 .field(|f| {
                     f.name(
                         format!("{}: #{}", format_rss_time(update_time).as_str(), number).as_str(),
-                    ).value(link)
+                        ).value(link)
                 })
-                .timestamp(message.timestamp.to_rfc3339())
+            .timestamp(message.timestamp.to_rfc3339())
                 .color(Colour::from_rgb(200, 100, 10))
         })
     })

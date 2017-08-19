@@ -220,16 +220,31 @@ fn main() {
                                          _ => make_log_entry("Got unknown dispatch error.".to_owned(), "Error")
                                      }
                                  })
+        // BEFORE/AFTER {{{3
         .before(|_, msg, command_name| {
             // Print info about the command use into log
-            make_log_entry(format!("Got command '{}' by user '{}#{}'",
+            make_log_entry(format!("Got command '{}' by user '{}#{}', running...",
                                    command_name,
                                    msg.author.name,
                                    msg.author.discriminator), "Info");
             true
         })
+        .after(|_, msg, command_name, error| {
+            // Print info about the command use into log
+            if let Err(reason) = error {
+                make_log_entry(format!("Got error during command '{}' by user '{}#{}', error is: {:?}",
+                                       command_name,
+                                       msg.author.name,
+                                       msg.author.discriminator,
+                                       reason), "CMD-Error");
+            } else {
+                make_log_entry(format!("Completed command '{}' by user '{}#{}'",
+                                       command_name,
+                                       msg.author.name,
+                                       msg.author.discriminator), "Info");
+            }
+        })
     });
-    // }}}2
 
     // Ready/Resume handlers {{{2
     client.on_ready(|ctx, ready| {
