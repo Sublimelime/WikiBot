@@ -266,6 +266,8 @@ fn main() {
     make_log_entry("Now waiting for connection...".to_owned(), "Status");
 
     if let Err(why) = client.start() {
-            println!("Err with client: {:?}", why);
+        println!("Err with client: {:?}", why);
+    } else {
+        println!("Client exited succesfully.");
     }
 }

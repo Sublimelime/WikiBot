@@ -126,7 +126,7 @@ fn send_version_embed(
     message: &Message,
     stable: &String,
     experimental: &String,
-    ) -> Result<Message, Error> {
+) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("Latest version:")
@@ -144,16 +144,16 @@ fn send_fff_embed(
     update_time: &str,
     link: &str,
     number: u32,
-    ) -> Result<Message, Error> {
+) -> Result<Message, Error> {
     message.channel_id.send_message(|a| {
         a.embed(|e| {
             e.description("FFF Results:")
                 .field(|f| {
                     f.name(
                         format!("{}: #{}", format_rss_time(update_time).as_str(), number).as_str(),
-                        ).value(link)
+                    ).value(link)
                 })
-            .timestamp(message.timestamp.to_rfc3339())
+                .timestamp(message.timestamp.to_rfc3339())
                 .color(Colour::from_rgb(200, 100, 10))
         })
     })
