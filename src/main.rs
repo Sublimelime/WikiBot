@@ -265,5 +265,7 @@ fn main() {
     // Init {{{2
     make_log_entry("Now waiting for connection...".to_owned(), "Status");
 
-    let _ = client.start(); //Start bot
+    if let Err(why) = client.start() {
+            println!("Err with client: {:?}", why);
+    }
 }
