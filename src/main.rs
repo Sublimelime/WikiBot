@@ -19,6 +19,7 @@ mod prefix_control;
 mod recipe_system;
 mod simple_commands;
 mod common_funcs;
+mod linkmod;
 
 use prefix_control::*;
 use simple_commands::*;
@@ -26,6 +27,7 @@ use common_funcs::*;
 use ratios::*;
 use web_requesting::*;
 use recipe_system::*;
+use linkmod::*;
 
 /// Main function. {{{1
 fn main() {
@@ -126,6 +128,14 @@ fn main() {
                                    .known_as("blog")
                                    .bucket("occasionally")
                                    .exec(fff))
+                          .command("linkmod", |c| c
+                                   .desc("When provided with the name of a mod, it will return an embed of all the data on that mod.
+                                         \nWhen provided with anything else, preforms a search.
+                                         \nThis command supports pipe syntax.")
+                                   .help_available(true)
+                                   .example("Achiever")
+                                   .bucket("occasionally")
+                                   .exec(linkmod))
                           .command("version", |c| c
                                    .desc("Returns the number of the latest version for stable and experimental. Due to expensive operations, can only be used once every 30 seconds.")
                                    .help_available(true)
