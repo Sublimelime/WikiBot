@@ -15,7 +15,7 @@ use levenshtein::*;
 command!(faqs(_context, message) {
     let parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
 
-    let mut embed_content = String::new();
+    let mut embed_content;
 
     embed_content = jsonvalue_as_comma_list(&parsed_json);
 
@@ -46,6 +46,7 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
         return Err(String::from("Could not add due to missing quotes or invalid args."));
     }
     let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+    let name = name.to_lowercase();
 
     if !parsed_json.has_key(name.as_str()) {
 
@@ -76,14 +77,24 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
 });
 
 /// Retrieves a faq from the storage of the bot. {{{1
-command!(faq_get(_context, message) {
+command!(faq_get(_context, message, _args) {
     let parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
-    let request = fix_message(message.content_safe(), "faq", &get_prefix_for_guild(&message.guild_id().unwrap()));
+    let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
+    let mut request = String::new();
+
+    if message.content_safe().starts_with(format!("{}faq", server_prefix).as_str()) {
+        request = fix_message(message.content_safe(), "faq", &server_prefix);
+    } else if message.content_safe().starts_with(format!("{}faw", server_prefix).as_str()) {
+        request = fix_message(message.content_safe(), "faw", &server_prefix);
+    }
 
     if request.is_empty() {
-        say_into_chat(&message, "Sorry, I was expecting the name of a faq here. For a list of all faqs, use the `faq-list` command.");
-        return Err(String::from("Invalid args to command."));
+        // Call the other command's function, since the user is looking for a list
+        return faqs(_context, message, _args);
     }
+
+    // Make lowercase
+    request = request.to_lowercase();
 
     // Key is not found, do a levenshtein search to see if they made a typo
     if !parsed_json.has_key(request.as_str()) {
@@ -95,7 +106,8 @@ command!(faq_get(_context, message) {
                 possiblities.push(key);
             }
         }
-        let possiblities_pretty = String::from(format!("{:?}", possiblities)).replace("[", "").replace("]", "");
+        // Clean up the output
+        let possiblities_pretty = String::from(format!("{:?}", possiblities)).replace("[", "").replace("]", "").replace('"', "");
         if let Err(_) = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{}",
                                                            request,
                                                            possiblities_pretty
@@ -113,7 +125,7 @@ command!(faq_get(_context, message) {
                                                                    .color(Colour::from_rgb(119,0,255))
                                                                    .timestamp(message.timestamp.to_rfc3339())
                                                                   )) {
-                say_into_chat(&message, format!("faq for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+                say_into_chat(&message, format!("FAQ for `{}`:\n```{}```\n(Normally there would be an image here.)", request, parsed_json[&request][0].as_str().unwrap()));
             }
 
         } else if parsed_json[&request].len() == 1 {
@@ -125,7 +137,7 @@ command!(faq_get(_context, message) {
                                                                    .color(Colour::from_rgb(119,0,255))
                                                                    .timestamp(message.timestamp.to_rfc3339())
                                                                   )) {
-                say_into_chat(&message, format!("faq for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+                say_into_chat(&message, format!("FAQ for `{}`:\n```{}```", request, parsed_json[&request][0].as_str().unwrap()));
             }
         }
     }
@@ -172,6 +184,7 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
         return Err(String::from("Could not set faq due to invalid args."));
     } else {
         let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+        let name = name.to_lowercase();
 
         if parsed_json.has_key(name.as_str()) {
 
@@ -179,12 +192,12 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
             let file = message.attachments.get(0);
             if let Some(image) = file {
                 let mut array = JsonValue::new_array();
-                array.push(faq.clone());
-                array.push(image.url.clone());
+                let _ = array.push(faq.clone());
+                let _ = array.push(image.url.clone());
                 parsed_json[&name] = array;
             } else {
                 let mut array = JsonValue::new_array();
-                array.push(faq.clone());
+                let _ = array.push(faq.clone());
                 parsed_json[&name] = array;
             }
 
