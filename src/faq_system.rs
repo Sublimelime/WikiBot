@@ -50,7 +50,12 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
     if !parsed_json.has_key(name.as_str()) {
 
         // Add the entry to the json
-        parsed_json[&name] = faq.clone().into();
+        let file = message.attachments.get(0);
+        if let Some(image) = file {
+            parsed_json[&name] = format!("{} \n![Image]({})", faq, image.url).into();
+        } else {
+            parsed_json[&name] = faq.clone().into();
+        }
 
         // Write it back to the file
         write_faq_json(parsed_json, &message.guild_id().unwrap());
@@ -151,7 +156,12 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
         if parsed_json.has_key(name.as_str()) {
 
             // Modify the entry
-            parsed_json[&name] = faq.clone().into();
+            let file = message.attachments.get(0);
+            if let Some(image) = file {
+                parsed_json[&name] = format!("{} \n![Image]({})", faq, image.url).into();
+            } else {
+                parsed_json[&name] = faq.clone().into();
+            }
 
             // Write it back to the file
             write_faq_json(parsed_json, &message.guild_id().unwrap());
@@ -185,10 +195,10 @@ pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-                error
+            error
             ),
             "Error",
-        );
+            );
     } else {
         make_log_entry(format!("Wrote to json file: {}", faq_file), "Info");
     }

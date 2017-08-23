@@ -22,6 +22,9 @@ command!(ping(_context, message) {
     "Of course you would ping me right now, at the worst possible moment...", "Try a different command.", ".....HA just kidding I'm still here.",
     "I wanted to be a protein folder, but noooo....", "I'm coded in rust, but I'm not rusty!",
     "BlueprintBot? He's okay. Don't really know him too well.", "Send your dankest memes.",
+    "Actively maintained!", "Haven't broken yet!", ":thinking:", "I main Bastion and Zenyatta in Overwatch.",
+    "Bots cannot have friends. Sorry.", "Do you like my steel plating?", "0 and 1 are all I need.",
+    "Heh, you humans... Typing manually and stuff....", "I don't get it.", "#BotsRights",
     // Other languages
     "*Tung!*", "*Servus!*", "*Hallo!*", "*Ahoj!*", "*Bonjour!*",
     "*Buon giorno!*"];

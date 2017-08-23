@@ -37,7 +37,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-    );
+        );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
@@ -174,6 +174,9 @@ fn main() {
                                   \n Can only be used by moderators.")
                                           .required_permissions(is_powerful_perms)
                                           .example("steam This is the ratio for steam:.....")
+                                          .min_args(2)
+                                          .use_quotes(true)
+                                          .max_args(2)
                                           .help_available(true)
                                           .exec(faq_add))
                                  .command("faq", |c| c
@@ -203,6 +206,9 @@ fn main() {
                                           .desc("Sets an existant faq to a different value. Can only be used by moderators.")
                                           .help_available(true)
                                           .example("steam This is the new ratio for steam:....")
+                                          .min_args(2)
+                                          .use_quotes(true)
+                                          .max_args(2)
                                           .required_permissions(is_powerful_perms)
                                           .exec(faq_set))
                                  )
@@ -272,4 +278,4 @@ fn main() {
     } else {
         println!("Client exited succesfully.");
     }
-}
+    }
