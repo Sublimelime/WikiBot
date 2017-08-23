@@ -8,18 +8,20 @@ use levenshtein::*;
 use self::json::JsonValue;
 use std::io::Read;
 use self::serenity::model::Message;
+use self::serenity::utils::Colour;
 
 /// Struct used to hold a bunch of data about a mod, for easy passing {{{1
 #[derive(Debug)]
 struct Mod {
     pub creation_date: String,
     pub last_updated: String,
+    pub thumb: String,
     pub name: String,
     pub author: String,
     pub link: String,
     pub download_count: u64,
-    pub source_path: Option<String>,
-    pub homepage: Option<String>,
+    pub source_path: String,
+    pub homepage: String,
     pub summary: String,
     pub title: String,
     pub tag: Option<String>,
@@ -28,16 +30,34 @@ struct Mod {
 /// Creates an embed based on the recieved mod data. {{{1
 /// Returns true if successful.
 fn make_mod_embed(modification: Mod, message: &Message) -> bool {
-    let result = message.channel_id.send_message(|a| a
+    let result = message.channel_id.send_message(move |a| a
                                                  .embed(|b| b
                                                         .description(&modification.summary)
                                                         .author(|c| c
-                                                                .name(&modification.name)
+                                                                .name(&modification.title)
                                                                 .url(&modification.link))
+                                                        .thumbnail(&modification.thumb)
+                                                        .color(Colour::from_rgb(255,34,108))
+                                                        .timestamp(message.timestamp.to_rfc3339())
                                                         .field(|c| c
                                                                .name("Author")
                                                                .value(&modification.author))
-                                                       ));
+                                                        .field(|c| c
+                                                               .name("Downloads")
+                                                               .value(&format!("{} downloads", modification.download_count)))
+                                                        .field(|c| c
+                                                               .name("Source code")
+                                                               .value(&modification.source_path))
+                                                        .field(|c| c
+                                                               .name("Homepage")
+                                                               .value(&modification.homepage))
+                                                        .field(|c| c
+                                                               .name("Last updated")
+                                                               .value(&modification.last_updated))
+                                                        .field(|c| c
+                                                               .name("Created on")
+                                                               .value(&modification.creation_date))
+                                                        ));
     result.is_ok()
 }
 
@@ -45,6 +65,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
 /// This can be provided either by direct link, or by giving it one of the results
 /// returned by a mod api search.
 fn parse_json_into_mod(json: &JsonValue) -> Mod {
+    let (_, downloads, _) = json["downloads_count"].as_number().unwrap().as_parts();
+    let mut thumbnail = String::from("http://i.imgur.com/ckaei9P.png");
+    if !json["first_media_file"].is_null() {
+        thumbnail = format!("{}", json["first_media_file"]["urls"]["thumb"]);
+    }
     Mod {
         creation_date: format!("{}", json["created_at"]),
         last_updated: format!("{}", json["updated_at"]),
@@ -53,9 +78,10 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         summary: format!("{}", json["summary"]),
         title: format!("{}", json["title"]),
         tag: None,
-        download_count: json["download_count"].as_u64().unwrap_or(0),
-        homepage: Some(format!("{}", json["homepage"])),
-        source_path: Some(format!("{}", json["source_path"].as_str().unwrap_or("None"))),
+        thumb: thumbnail,
+        download_count: downloads,
+        homepage: format!("{}", json["homepage"]),
+        source_path: format!("{}", json["source_path"].as_str().unwrap_or("None")),
         link: format!("https://mods.factorio.com/mods/{}/{}", json["owner"], json["name"])
     }
 }
@@ -85,6 +111,8 @@ fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
                                                  a.embed(|b| b
                                                          .title("Search results:")
                                                          .description(&serialize_search_results(&results))
+                                                         .color(Colour::from_rgb(255,34,108))
+                                                         .timestamp(message.timestamp.to_rfc3339())
                                                         ));
     if let Err(_) = result {
         false
@@ -100,11 +128,13 @@ fn serialize_search_results(results: &JsonValue) -> String {
         if counter > 10 {
             break; //Don't put more than ten entries
         }
-        final_string += format!("[{}](https://mods.factorio.com/{}/{}) by {}\n",
-                                entry["title"],
-                                entry["owner"],
-                                entry["name"],
-                                entry["owner"]).as_str();
+        let mut encoded_name = format!("{}", entry["name"]);
+        encoded_name = encoded_name.replace(" ", "%20");
+        final_string += format!("[{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
+        entry["title"],
+        entry["owner"],
+        encoded_name,
+        entry["owner"]).as_str();
     }
     final_string
 }
