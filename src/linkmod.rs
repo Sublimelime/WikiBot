@@ -20,6 +20,8 @@ struct Mod {
     pub author: String,
     pub link: String,
     pub download_count: u64,
+    pub latest_version: String,
+    pub factorio_version: String,
     pub source_path: String,
     pub homepage: String,
     pub summary: String,
@@ -30,6 +32,10 @@ struct Mod {
 /// Creates an embed based on the recieved mod data. {{{1
 /// Returns true if successful.
 fn make_mod_embed(modification: Mod, message: &Message) -> bool {
+    let mut tag_str = String::from("Not tagged.");
+    if let Some(ref tag) = modification.tag {
+        tag_str = tag.clone();
+    }
     let result = message.channel_id.send_message(move |a| a
                                                  .embed(|b| b
                                                         .description(&modification.summary)
@@ -55,10 +61,23 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                                                                .name("Last updated")
                                                                .value(&modification.last_updated))
                                                         .field(|c| c
+                                                               .name("Tagged")
+                                                               .value(&tag_str))
+                                                        .field(|c| c
                                                                .name("Created on")
                                                                .value(&modification.creation_date))
+                                                        .field(|c| c
+                                                               .name("Latest mod version")
+                                                               .value(&modification.latest_version))
+                                                        .field(|c| c
+                                                               .name("Factorio version")
+                                                               .value(&modification.factorio_version))
                                                         ));
-    result.is_ok()
+    if let Err(error) = result {
+        println!("Got error with sending embed of mod: {:?}", error);
+        return false;
+    }
+    true
 }
 
 /// Turns a jsonValue into a Mod. Assumes this is a direct mod json entry. {{{1
@@ -67,21 +86,50 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
 fn parse_json_into_mod(json: &JsonValue) -> Mod {
     let (_, downloads, _) = json["downloads_count"].as_number().unwrap().as_parts();
     let mut thumbnail = String::from("http://i.imgur.com/ckaei9P.png");
+    let mut homepage = String::from("None");
+    let mut source = String::from("None");
     if !json["first_media_file"].is_null() {
         thumbnail = format!("{}", json["first_media_file"]["urls"]["thumb"]);
     }
+
+    if !json["homepage"].is_null() && json["homepage"] != "" {
+        homepage = format!("[Home]({})", json["homepage"]);
+    }
+
+    if !json["github_path"].is_null() && json["github_path"] != "" {
+        source = format!("[Source](https://github.com/{})", json["github_path"]);
+    }
+
+    let mut tag = None;
+    if !json["tags"].is_empty() && !json["tags"].is_null() {
+        tag = Some(format!("{}", json["tags"][0]["title"]))
+    }
+
+    // Fix dates
+    let mut date = format!("{}", json["created_at"]);
+    if let Some(index) = date.find(" ") {
+        date.truncate(index as usize);
+    }
+
+    let mut update_date = format!("{}", json["updated_at"]);
+    if let Some(index) = update_date.find(" ") {
+        update_date.truncate(index as usize);
+    }
+
     Mod {
-        creation_date: format!("{}", json["created_at"]),
-        last_updated: format!("{}", json["updated_at"]),
+        creation_date: date,
+        last_updated: update_date,
         name:  format!("{}", json["name"]),
         author:  format!("{}", json["owner"]),
         summary: format!("{}", json["summary"]),
         title: format!("{}", json["title"]),
-        tag: None,
+        latest_version: format!("{}", json["latest_release"]["version"]),
+        factorio_version: format!("{}", json["latest_release"]["factorio_version"]),
+        tag: tag,
         thumb: thumbnail,
         download_count: downloads,
-        homepage: format!("{}", json["homepage"]),
-        source_path: format!("{}", json["source_path"].as_str().unwrap_or("None")),
+        homepage: homepage,
+        source_path: source,
         link: format!("https://mods.factorio.com/mods/{}/{}", json["owner"], json["name"])
     }
 }
@@ -143,6 +191,14 @@ fn serialize_search_results(results: &JsonValue) -> String {
 command!(linkmod(_context, message) {
     let request = fix_message(message.content_safe(), "linkmod", &get_prefix_for_guild(&message.guild_id().unwrap()));
 
+    // Check arg validity
+    if request.is_empty() {
+            if let Err(_) = send_error_embed(&message, "Expected a mod to search for.") {
+                say_into_chat(&message, "Expected a mod to search for.");
+            }
+            return Err(String::from("User didn't provide an argument."));
+    }
+
     let returned = make_request(&request);
     if !returned.is_empty() {
         let returned_results = &returned["results"];
@@ -172,11 +228,15 @@ command!(linkmod(_context, message) {
             }
             return Ok(());
         } else {
-            say_into_chat(&message, "There are no results for that query.");
+            if let Err(_) = send_error_embed(&message, "There are no results for that query.") {
+                say_into_chat(&message, "There are no results for that query.");
+            }
             return Err(String::from("Didn't find any results for the request."));
         }
     } else {
-        say_into_chat(&message, "Couldn't get a response back from the mod portal.");
+        if let Err(_) = send_error_embed(&message, "Couldn't get a response back from the mod portal.") {
+            say_into_chat(&message, "Couldn't get a response back from the mod portal.");
+        }
         return Err(String::from("Failed to get a response back from the mod portal."));
     }
 });
