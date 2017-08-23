@@ -15,9 +15,15 @@ command!(ping(_context, message) {
     "Hearing you loud and clear.","PiNg!", "Yep, still here.",
     "Nah, totally offline.", "Sup?", "What's a bot gotta do to get some sleep around here?",
     "Running.", "Uptime is my prime focus.", "It... It's not like I wanted to be pinged by you... :blush:",
-    "!gniP", "*Snore* :zzz:", "Cheers!", "Yes?",
+    "!gniP", "*Snore* :zzz:", "Cheers!", "Yes?", "I was young once.",
+    "Do bots dream of electric wumpuses?", ">TFW you get pinged by some guy and have to respond",
+    "That's a nice name.", "I think that you should relax, you look a little tense.",
+    "Wanna hear a joke?", "So I said, 0100101001001111001, and then he said 00101001001111101101, and we both segfaulted. :laughing:",
+    "Of course you would ping me right now, at the worst possible moment...", "Try a different command.", ".....HA just kidding I'm still here.",
+    "I wanted to be a protein folder, but noooo....", "I'm coded in rust, but I'm not rusty!",
+    "BlueprintBot? He's okay. Don't really know him too well.", "Send your dankest memes.",
     // Other languages
-    "*Tung!*", "*Servus!*", "*Hallo!", "*Ahoj!", "*Bonjour!*",
+    "*Tung!*", "*Servus!*", "*Hallo!*", "*Ahoj!*", "*Bonjour!*",
     "*Buon giorno!*"];
     let random = rand::thread_rng().gen_range(0, replies.len());
 
