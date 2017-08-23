@@ -52,9 +52,14 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
         // Add the entry to the json
         let file = message.attachments.get(0);
         if let Some(image) = file {
-            parsed_json[&name] = format!("{} \n![Image]({})", faq, image.url).into();
+            let mut array = JsonValue::new_array();
+            array.push(faq.clone());
+            array.push(image.url.clone());
+            parsed_json[&name] = array;
         } else {
-            parsed_json[&name] = faq.clone().into();
+            let mut array = JsonValue::new_array();
+            array.push(faq.clone());
+            parsed_json[&name] = array;
         }
 
         // Write it back to the file
@@ -98,15 +103,30 @@ command!(faq_get(_context, message) {
             say_into_chat(&message, format!("Unable to make embed, using fallback list: {:#?}", possiblities)) ;
         }
     } else { // Key is found literally
-        // Build message
-        if let Err(_) = message.channel_id.send_message(|a| a
-                                                        .embed(|b| b
-                                                               .title(request.as_str())
-                                                               .description(parsed_json[&request].as_str().unwrap())
-                                                               .color(Colour::from_rgb(119,0,255))
-                                                               .timestamp(message.timestamp.to_rfc3339())
-                                                              )) {
-            say_into_chat(&message, format!("faq for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+        if parsed_json[&request].len() > 1 {
+            // Build message
+            if let Err(_) = message.channel_id.send_message(|a| a
+                                                            .embed(|b| b
+                                                                   .title(request.as_str())
+                                                                   .description(parsed_json[&request][0].as_str().unwrap())
+                                                                   .image(parsed_json[&request][1].as_str().unwrap())
+                                                                   .color(Colour::from_rgb(119,0,255))
+                                                                   .timestamp(message.timestamp.to_rfc3339())
+                                                                  )) {
+                say_into_chat(&message, format!("faq for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+            }
+
+        } else if parsed_json[&request].len() == 1 {
+            // Build message
+            if let Err(_) = message.channel_id.send_message(|a| a
+                                                            .embed(|b| b
+                                                                   .title(request.as_str())
+                                                                   .description(parsed_json[&request][0].as_str().unwrap())
+                                                                   .color(Colour::from_rgb(119,0,255))
+                                                                   .timestamp(message.timestamp.to_rfc3339())
+                                                                  )) {
+                say_into_chat(&message, format!("faq for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+            }
         }
     }
 });
@@ -158,9 +178,14 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
             // Modify the entry
             let file = message.attachments.get(0);
             if let Some(image) = file {
-                parsed_json[&name] = format!("{} \n![Image]({})", faq, image.url).into();
+                let mut array = JsonValue::new_array();
+                array.push(faq.clone());
+                array.push(image.url.clone());
+                parsed_json[&name] = array;
             } else {
-                parsed_json[&name] = faq.clone().into();
+                let mut array = JsonValue::new_array();
+                array.push(faq.clone());
+                parsed_json[&name] = array;
             }
 
             // Write it back to the file

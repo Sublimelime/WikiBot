@@ -2,11 +2,7 @@
 name = "wikibot"
 version = "0.1.0"
 publish = false
-authors = ["Noah Morton <noahmorton98@gmail.com>"]
-
-[profile.release]
-debug = false
-opt-level = 3
+authors = ["[Redacted] <nope@gmail.com>"]
 
 [dependencies]
 serenity = "0.3.0"
