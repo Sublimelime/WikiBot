@@ -11,7 +11,7 @@ use serenity::model::{UserId, Permissions};
 use serenity::framework::{help_commands, DispatchError};
 
 // Other files
-mod ratios;
+mod faq_system;
 mod levenshtein;
 mod web_requesting;
 mod constants;
@@ -24,7 +24,7 @@ mod linkmod;
 use prefix_control::*;
 use simple_commands::*;
 use common_funcs::*;
-use ratios::*;
+use faq_system::*;
 use web_requesting::*;
 use recipe_system::*;
 use linkmod::*;
@@ -160,59 +160,51 @@ fn main() {
                                    .example("beacon")
                                    .exec(recipe))
                           )
-                          // RATIOS GROUP -------------------------- {{{3
-                          .group("Ratios", |g| g
-                                 .command("ratio-list", |c|
-                                          c.desc("Returns a list of all registered ratios.")
+                          // FAQ GROUP -------------------------- {{{3
+                          .group("FAQ System", |g| g
+                                 .command("faq-list", |c|
+                                          c.desc("Returns a list of all registered faqs.")
                                           .help_available(true)
                                           .bucket("super-slowly")
-                                          .exec(ratios))
-                                 .command("ratio-add", |c| c
+                                          .exec(faqs))
+                                 .command("faq-add", |c| c
                                           .desc("Adds a ratio to the list of created ratios.
-                                  \nProvide a name for the ratio, and the ratio itself. Quotes are required around each arg.
+                                  \nProvide a name for the ratio, and the ratio itself.
+                                  \nThe name of the ratio can only be one word, use underscores if necessary.
                                   \n Can only be used by moderators.")
-                                          .min_args(2)
-                                          .use_quotes(true)
-                                          .max_args(2)
                                           .required_permissions(is_powerful_perms)
-                                          .example("\"name\" \"1:2:3\"")
+                                          .example("steam This is the ratio for steam:.....")
                                           .help_available(true)
-                                          .usage("\"name\" \"ratio\"")
-                                          .exec(ratio_add))
-
-                                 .command("ratio", |c| c
-                                          .desc("Retrieves a ratio and prints it into chat.
+                                          .exec(faq_add))
+                                 .command("faq", |c| c
+                                          .desc("Retrieves a faq and prints it into chat.
                                   \nProvide a name for the ratio to get.
                                   \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
                                           .min_args(1)
                                           .example("steam")
+                                          .known_as("faw")
                                           .usage("name")
                                           .help_available(true)
-                                          .exec(ratio_get))
-                                 .command("ratio-delete", |c| c
-                                          .desc("Deletes a ratio. Can only be used by moderators.")
+                                          .exec(faq_get))
+                                 .command("faq-delete", |c| c
+                                          .desc("Deletes a faq. Can only be used by moderators.")
                                           .min_args(1)
                                           .example("steam")
                                           .help_available(true)
                                           .required_permissions(is_powerful_perms)
                                           .usage("name")
-                                          .exec(ratio_delete))
-                                 .command("ratio-deleteall", |c| c
-                                          .desc("Deletes all ratios. Can only be used by moderators.")
-                                          .known_as("clear")
+                                          .exec(faq_delete))
+                                 .command("faq-deleteall", |c| c
+                                          .desc("Deletes all faq. Can only be used by moderators.")
                                           .required_permissions(is_powerful_perms)
                                           .help_available(true)
-                                          .exec(ratio_deleteall))
-                                 .command("ratio-set", |c| c
-                                          .desc("Sets an existant ratio to a different value. Can only be used by moderators.")
-                                          .min_args(2)
-                                          .max_args(2)
+                                          .exec(faq_deleteall))
+                                 .command("faq-set", |c| c
+                                          .desc("Sets an existant faq to a different value. Can only be used by moderators.")
                                           .help_available(true)
-                                          .use_quotes(true)
-                                          .example("\"steam\" \"1:2:3\"")
+                                          .example("steam This is the new ratio for steam:....")
                                           .required_permissions(is_powerful_perms)
-                                          .usage("\"name\" \"new value\"")
-                                          .exec(ratio_set))
+                                          .exec(faq_set))
                                  )
                                  // DISPATCH ERRORS ----------------------------- {{{3
                                  .on_dispatch_error(|_ctx, msg, error| {
