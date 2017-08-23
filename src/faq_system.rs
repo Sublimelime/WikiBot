@@ -4,53 +4,179 @@ extern crate json;
 
 use self::json::JsonValue;
 use self::serenity::utils::Colour;
-use self::serenity::model::*;
+use self::serenity::model::GuildId;
 
 use common_funcs::*;
-use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 use constants::*;
 use std::fs::OpenOptions;
 use levenshtein::*;
 
-
-/// A struct that holds all the data about a faq entry, including the channel and message.
-struct FAQEntry {
-    pub channel: ChannelId,
-    pub message: Message,
-    pub message_id: MessageId,
-}
-
-/// Retrieves a faq from the list. {{{1
-command!(faq_get(_context, message) {
-});
-
+/// Prints out a grand list of all current stored faqs. {{{1
 command!(faqs(_context, message) {
+    let parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+
+    let mut embed_content = String::new();
+
+    embed_content = jsonvalue_as_comma_list(&parsed_json);
+
+    //Send the message with embed
+    let result = message.channel_id.send_message(|a| a
+                                                 .content("List of all registered faqs:")
+                                                 .embed(|b| b
+                                                        .title("faqs for this server:")
+                                                        .description(embed_content.as_str())
+                                                        .color(Colour::from_rgb(119,0,255))
+                                                        .timestamp(message.timestamp.to_rfc3339())
+                                                       ));
+    if let Err(error) = result {
+        let _ = send_error_embed(&message, "Failed to get faq list. Either something went wrong, or no faqs are defined.");
+        return Err(format!("Got error sending list of faqs, error is: {:?}, parsed json is {}", error, parsed_json.dump()));
+    }
 });
 
-command!(faq_add(_context, message) {
+/// Adds a faq to the list of current faqs. {{{1
+/// Can only be used by moderators.
+command!(faq_add(_context, message, _args, name: String, faq: String) {
+    // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
+    if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
+        let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
+                                        Use ```{}help faq-add``` for info on how to format this command.",
+                                        get_prefix_for_guild(&message.guild_id().unwrap())
+                                        ).as_str());
+        return Err(String::from("Could not add due to missing quotes or invalid args."));
+    }
+    let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+
+    if !parsed_json.has_key(name.as_str()) {
+
+        // Add the entry to the json
+        parsed_json[&name] = faq.clone().into();
+
+        // Write it back to the file
+        write_faq_json(parsed_json, &message.guild_id().unwrap());
+
+        if let Err(_) = send_success_embed(&message, format!("Success, added faq `{}` for concept `{}`.", faq, name).as_str()) {
+            say_into_chat(&message, format!("Success, added faq `{}` for concept `{}`.", faq, name));
+        }
+    } else {
+        let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name.
+                                 Try using ```faq-set``` instead, or removing it.");
+        return Err(String::from("Could not add due to an already existing key for provided faq."));
+    }
 });
 
+/// Retrieves a faq from the storage of the bot. {{{1
+command!(faq_get(_context, message) {
+    let parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+    let request = fix_message(message.content_safe(), "faq", &get_prefix_for_guild(&message.guild_id().unwrap()));
+
+    if request.is_empty() {
+        say_into_chat(&message, "Sorry, I was expecting the name of a faq here. For a list of all faqs, use the `faq-list` command.");
+        return Err(String::from("Invalid args to command."));
+    }
+
+    // Key is not found, do a levenshtein search to see if they made a typo
+    if !parsed_json.has_key(request.as_str()) {
+        let mut possiblities: Vec<&str> = Vec::new();
+
+        for entry in parsed_json.entries() {
+            let (key, _value) = entry;
+            if levenshtein(key, request.as_str()) < 5 {
+                possiblities.push(key);
+            }
+        }
+        let possiblities_pretty = String::from(format!("{:?}", possiblities)).replace("[", "").replace("]", "");
+        if let Err(_) = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{}",
+                                                           request,
+                                                           possiblities_pretty
+                                                          ).as_str()) {
+            say_into_chat(&message, format!("Unable to make embed, using fallback list: {:#?}", possiblities)) ;
+        }
+    } else { // Key is found literally
+        // Build message
+        if let Err(_) = message.channel_id.send_message(|a| a
+                                                        .embed(|b| b
+                                                               .title(request.as_str())
+                                                               .description(parsed_json[&request].as_str().unwrap())
+                                                               .color(Colour::from_rgb(119,0,255))
+                                                               .timestamp(message.timestamp.to_rfc3339())
+                                                              )) {
+            say_into_chat(&message, format!("faq for `{}`:\n```{}```", request, parsed_json[&request].as_str().unwrap()));
+        }
+    }
+});
+
+/// Deletes a stored faq. Administrators only. {{{1
 command!(faq_delete(_context, message) {
+    let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+    let request = fix_message(message.content_safe(), "faq-delete ", &get_prefix_for_guild(&message.guild_id().unwrap()));
+
+    if !parsed_json.has_key(request.as_str()) {
+        let _ = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request).as_str());
+    } else { // Key is found
+        // Do the deletion
+        let _ = parsed_json.remove(request.as_str());
+        write_faq_json(parsed_json, &message.guild_id().unwrap());
+
+        // Build message
+        if let Err(_) = send_success_embed(&message, format!("Success, faq for `{}` was deleted.", request).as_str()) {
+            say_into_chat(&message, format!("Success, faq for `{}` was deleted.", request));
+        }
+    }
 });
 
+/// Deletes all stored faqs in the registry. Admin only. {{{1
 command!(faq_deleteall(_context, message) {
+    // Clear all the faqs by writing an empty object to the file
+    write_faq_json(JsonValue::new_object(), &message.guild_id().unwrap());
+
+    if let Err(_) = send_success_embed(&message, "Success, all faqs deleted.") {
+        say_into_chat(&message, "Success, all faqs deleted.");
+    }
 });
 
-command!(faq_set(_context, message) {
+
+/// Changes the value of an existant faq. Administrators only. {{{1
+command!(faq_set(_context, message, _args, name: String, faq: String) {
+    // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
+    if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
+        let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
+                                        Use ```{}help faq-set``` for info on how to format this command.",
+                                        get_prefix_for_guild(&message.guild_id().unwrap())
+                                        ).as_str());
+        return Err(String::from("Could not set faq due to invalid args."));
+    } else {
+        let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+
+        if parsed_json.has_key(name.as_str()) {
+
+            // Modify the entry
+            parsed_json[&name] = faq.clone().into();
+
+            // Write it back to the file
+            write_faq_json(parsed_json, &message.guild_id().unwrap());
+
+            if let Err(_) = send_success_embed(&message, format!("Success, set faq `{}` for concept `{}`.", faq, name).as_str()) {
+                say_into_chat(&message, format!("Success, set faq `{}` for concept `{}`.", faq, name));
+            }
+        } else {
+            let _ = send_error_embed(&message, "Cannot set, key not found in dictionary. Try using ```faq add``` instead.");
+            return Err(String::from("Could not set faq due to missing key."));
+        }
+    }
 });
 
-///Takes a JsonValue, and writes it to the ratios file. {{{1
-pub fn write_faq_backup(value: JsonValue, guild: &GuildId) {
+///Takes a JsonValue, and writes it to the faqs file. {{{1
+pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
     // Determine file name based on the guild in question
-    let ratio_file = format!("{:?}-faqs.json", guild);
+    let faq_file = format!("{:?}-faqs.json", guild);
 
     // Open the json file for writing, nuking any previous contents
     let mut file = OpenOptions::new()
         .write(true)
         .create(true) //create the file if it doesn't exist
         .truncate(true)
-        .open(ratio_file.as_str())
+        .open(faq_file.as_str())
         .expect("Unable to open/create json file for writing.");
 
     // Write json to file
@@ -64,7 +190,7 @@ pub fn write_faq_backup(value: JsonValue, guild: &GuildId) {
             "Error",
         );
     } else {
-        make_log_entry(format!("Wrote to json file: {}", ratio_file), "Info");
+        make_log_entry(format!("Wrote to json file: {}", faq_file), "Info");
     }
 }
 
