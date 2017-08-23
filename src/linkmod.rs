@@ -36,43 +36,37 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
     if let Some(ref tag) = modification.tag {
         tag_str = tag.clone();
     }
-    let result = message.channel_id.send_message(move |a| a
-                                                 .embed(|b| b
-                                                        .description(&modification.summary)
-                                                        .author(|c| c
-                                                                .name(&modification.title)
-                                                                .url(&modification.link))
-                                                        .thumbnail(&modification.thumb)
-                                                        .color(Colour::from_rgb(255,34,108))
-                                                        .timestamp(message.timestamp.to_rfc3339())
-                                                        .field(|c| c
-                                                               .name("Author")
-                                                               .value(&modification.author))
-                                                        .field(|c| c
-                                                               .name("Downloads")
-                                                               .value(&format!("{} downloads", modification.download_count)))
-                                                        .field(|c| c
-                                                               .name("Source code")
-                                                               .value(&modification.source_path))
-                                                        .field(|c| c
-                                                               .name("Homepage")
-                                                               .value(&modification.homepage))
-                                                        .field(|c| c
-                                                               .name("Last updated")
-                                                               .value(&modification.last_updated))
-                                                        .field(|c| c
-                                                               .name("Tagged")
-                                                               .value(&tag_str))
-                                                        .field(|c| c
-                                                               .name("Created on")
-                                                               .value(&modification.creation_date))
-                                                        .field(|c| c
-                                                               .name("Latest mod version")
-                                                               .value(&modification.latest_version))
-                                                        .field(|c| c
-                                                               .name("Factorio version")
-                                                               .value(&modification.factorio_version))
-                                                        ));
+    let result = message.channel_id.send_message(move |a| {
+        a.embed(|b| {
+            b.description(&modification.summary)
+                .author(|c| c.name(&modification.title).url(&modification.link))
+                .thumbnail(&modification.thumb)
+                .color(Colour::from_rgb(255, 34, 108))
+                .timestamp(message.timestamp.to_rfc3339())
+                .field(|c| c.name("Author").value(&modification.author))
+                .field(|c| {
+                    c.name("Downloads").value(&format!(
+                        "{} downloads",
+                        modification.download_count
+                    ))
+                })
+                .field(|c| c.name("Source code").value(&modification.source_path))
+                .field(|c| c.name("Homepage").value(&modification.homepage))
+                .field(|c| c.name("Last updated").value(&modification.last_updated))
+                .field(|c| c.name("Tagged").value(&tag_str))
+                .field(|c| c.name("Created on").value(&modification.creation_date))
+                .field(|c| {
+                    c.name("Latest mod version").value(
+                        &modification.latest_version,
+                    )
+                })
+                .field(|c| {
+                    c.name("Factorio version").value(
+                        &modification.factorio_version,
+                    )
+                })
+        })
+    });
     if let Err(error) = result {
         println!("Got error with sending embed of mod: {:?}", error);
         return false;
@@ -119,8 +113,8 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
     Mod {
         creation_date: date,
         last_updated: update_date,
-        name:  format!("{}", json["name"]),
-        author:  format!("{}", json["owner"]),
+        name: format!("{}", json["name"]),
+        author: format!("{}", json["owner"]),
         summary: format!("{}", json["summary"]),
         title: format!("{}", json["title"]),
         latest_version: format!("{}", json["latest_release"]["version"]),
@@ -130,14 +124,20 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         download_count: downloads,
         homepage: homepage,
         source_path: source,
-        link: format!("https://mods.factorio.com/mods/{}/{}", json["owner"], json["name"])
+        link: format!(
+            "https://mods.factorio.com/mods/{}/{}",
+            json["owner"],
+            json["name"]
+        ),
     }
 }
 
 
 /// Makes a request, either returning empty, or the successful mod json {{{1
 fn make_request(request: &String) -> JsonValue {
-    let response = reqwest::get(format!("https://mods.factorio.com/api/mods?q={}", request).as_str());
+    let response = reqwest::get(
+        format!("https://mods.factorio.com/api/mods?q={}", request).as_str(),
+    );
 
     if let Ok(mut response) = response {
         if response.status().is_success() {
@@ -155,18 +155,15 @@ fn make_request(request: &String) -> JsonValue {
 /// Makes an embed of search results. Takes a json array, and returns true {{{1
 /// if able to make an embed of all the results
 fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
-    let result = message.channel_id.send_message(|a|
-                                                 a.embed(|b| b
-                                                         .title("Search results:")
-                                                         .description(&serialize_search_results(&results))
-                                                         .color(Colour::from_rgb(255,34,108))
-                                                         .timestamp(message.timestamp.to_rfc3339())
-                                                        ));
-    if let Err(_) = result {
-        false
-    } else {
-        true
-    }
+    let result = message.channel_id.send_message(|a| {
+        a.embed(|b| {
+            b.title("Search results:")
+                .description(&serialize_search_results(&results))
+                .color(Colour::from_rgb(255, 34, 108))
+                .timestamp(message.timestamp.to_rfc3339())
+        })
+    });
+    if let Err(_) = result { false } else { true }
 }
 
 /// Takes a json array as input, returns a string of the search results serialized. {{{1
@@ -178,11 +175,13 @@ fn serialize_search_results(results: &JsonValue) -> String {
         }
         let mut encoded_name = format!("{}", entry["name"]);
         encoded_name = encoded_name.replace(" ", "%20");
-        final_string += format!("[{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
-        entry["title"],
-        entry["owner"],
-        encoded_name,
-        entry["owner"]).as_str();
+        final_string += format!(
+            "[{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
+            entry["title"],
+            entry["owner"],
+            encoded_name,
+            entry["owner"]
+        ).as_str();
     }
     final_string
 }

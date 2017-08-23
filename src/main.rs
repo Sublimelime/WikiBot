@@ -37,7 +37,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-        );
+    );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
@@ -278,4 +278,4 @@ fn main() {
     } else {
         println!("Client exited succesfully.");
     }
-    }
+}

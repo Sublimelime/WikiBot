@@ -23,7 +23,7 @@ command!(faqs(_context, message) {
     let result = message.channel_id.send_message(|a| a
                                                  .content("List of all registered faqs:")
                                                  .embed(|b| b
-                                                        .title("faqs for this server:")
+                                                        .title("FAQs for this server:")
                                                         .description(embed_content.as_str())
                                                         .color(Colour::from_rgb(119,0,255))
                                                         .timestamp(message.timestamp.to_rfc3339())
@@ -54,12 +54,12 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
         let file = message.attachments.get(0);
         if let Some(image) = file {
             let mut array = JsonValue::new_array();
-            array.push(faq.clone());
-            array.push(image.url.clone());
+            let _ = array.push(faq.clone());
+            let _ = array.push(image.url.clone());
             parsed_json[&name] = array;
         } else {
             let mut array = JsonValue::new_array();
-            array.push(faq.clone());
+            let _ = array.push(faq.clone());
             parsed_json[&name] = array;
         }
 
@@ -107,7 +107,7 @@ command!(faq_get(_context, message, _args) {
             }
         }
         // Clean up the output
-        let possiblities_pretty = String::from(format!("{:?}", possiblities)).replace("[", "").replace("]", "").replace('"', "");
+        let possiblities_pretty = String::from(format!("{:?}.", possiblities)).replace("[", "").replace("]", "").replace('"', "");
         if let Err(_) = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{}",
                                                            request,
                                                            possiblities_pretty
@@ -233,10 +233,10 @@ pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-            error
+                error
             ),
             "Error",
-            );
+        );
     } else {
         make_log_entry(format!("Wrote to json file: {}", faq_file), "Info");
     }
@@ -258,6 +258,7 @@ fn jsonvalue_as_comma_list(json_value: &JsonValue) -> String {
     if result.len() > 3 {
         result = String::from(&result[..result.len() - 2]);
     }
+    result.push('.');
     result
 }
 
@@ -280,6 +281,6 @@ mod tests {
 
         let listed = jsonvalue_as_comma_list(&testing_object);
         // Test if the result is what we want
-        assert_eq!(listed, "first, second, third, fourth");
+        assert_eq!(listed, "first, second, third, fourth.");
     }
 }
