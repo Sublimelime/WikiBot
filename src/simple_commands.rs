@@ -24,7 +24,7 @@ command!(ping(_context, message) {
     "BlueprintBot? He's okay. Don't really know him too well.", "Send your dankest memes.",
     "Actively maintained!", "Haven't broken yet!", ":thinking:", "I main Bastion and Zenyatta in Overwatch.",
     "Bots cannot have friends. Sorry.", "Do you like my steel plating?", "0 and 1 are all I need.",
-    "Heh, you humans... Typing manually and stuff....", "I don't get it.", "#BotsRights",
+    "Heh, you humans... Typing manually and stuff.... I don't get it.", "Never forget #BotsRights",
     // Other languages
     "*Tung!*", "*Servus!*", "*Hallo!*", "*Ahoj!*", "*Bonjour!*",
     "*Buon giorno!*"];
@@ -50,26 +50,12 @@ command!(info(_context, message) {
                                             .embed(|b| b
                                                    .title("WikiBot")
                                                    .description(reply.as_str())
-                                                   .field(|c| c
-                                                          .name("Author")
-                                                          .value("Gangsir")
-                                                         )
-                                                   .field(|c| c
-                                                          .name("Contact")
-                                                          .value("I'm in the factorio discord server, or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir).")
-                                                         )
-                                                   .field(|c| c
-                                                          .name("Programming language")
-                                                          .value("Made in [Rust](https://www.rust-lang.org).")
-                                                         )
-                                                   .field(|c| c
-                                                          .name("Library")
-                                                          .value("Made with [Serenity](https://crates.io/crates/serenity).")
-                                                         )
-                                                   .field(|c| c
-                                                          .name("Local prefix")
-                                                          .value(server_prefix.as_str())
-                                                         )
+                                                   .field(|c| c.name("Author").value("Gangsir"))
+                                                   .field(|c| c.name("Contact").value("I'm in the factorio discord server,
+                                                                                        or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir)."))
+                                                   .field(|c| c.name("Programming language").value("Made in [Rust](https://www.rust-lang.org)."))
+                                                   .field(|c| c.name("Library").value("Made with [Serenity](https://crates.io/crates/serenity)."))
+                                                   .field(|c| c.name("Local prefix").value(server_prefix.as_str()))
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
                                                    ));
@@ -89,15 +75,8 @@ command!(uptime(_context, message) {
                                                     .embed(|b| b
                                                            .title("Status")
                                                            .description("Current bot status:")
-
-                                                           .field(|c| c
-                                                                  .name("Uptime")
-                                                                  .value(format!("```{}```", uptime_result).as_str())
-                                                                 )
-                                                           .field(|c| c
-                                                                  .name("Memory")
-                                                                  .value(format!("```{}```", mem_result).as_str())
-                                                                 )
+                                                           .field(|c| c.name("Uptime").value(format!("```{}```", uptime_result).as_str()))
+                                                           .field(|c| c.name("Memory").value(format!("```{}```", mem_result).as_str()))
                                                            .timestamp(message.timestamp.to_rfc3339())
                                                            .color(Colour::from_rgb(255, 255, 255))
                                                           ));
@@ -124,15 +103,9 @@ command!(host(_context, message) {
     let embed_result = message.channel_id.send_message(|a| a
                                                        .embed(|b| b
                                                               .description("Powered by [Rust Stable](https://www.rust-lang.org).")
-                                                              .field(|c| c
-                                                                     .name("Host OS:")
-                                                                     .value(OS))
-                                                              .field(|c| c
-                                                                     .name("Host processor arch:")
-                                                                     .value(ARCH))
-                                                              .field(|c| c
-                                                                     .name("Uptime:")
-                                                                     .value(uptime.as_str()))
+                                                              .field(|c| c.name("Host OS:").value(OS))
+                                                              .field(|c| c.name("Host processor arch:").value(ARCH))
+                                                              .field(|c| c.name("Uptime:").value(uptime.as_str()))
                                                               .timestamp(message.timestamp.to_rfc3339())
                                                               .color(Colour::from_rgb(255,255,255))
                                                              ));
@@ -184,5 +157,3 @@ command!(fff_old(_context, message) {
     final_message.push_str(modified_content.as_str());
     reply_into_chat(&message, final_message);
 });
-
-// }}}1
