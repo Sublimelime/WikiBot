@@ -25,9 +25,10 @@ command!(ping(_context, message) {
     "Actively maintained!", "Haven't broken yet!", ":thinking:", "I main Bastion and Zenyatta in Overwatch.",
     "Bots cannot have friends. Sorry.", "Do you like my steel plating?", "0 and 1 are all I need.",
     "Heh, you humans... Typing manually and stuff.... I don't get it.", "Never forget #BotsRights",
+    "EXTERMIN... oh nevermind.", "Fun fact: I take about an hour to compile from scratch.",
     // Other languages
     "*Tung!*", "*Servus!*", "*Hallo!*", "*Ahoj!*", "*Bonjour!*",
-    "*Buon giorno!*"];
+    "*Buon giorno!*", "*Wie gehts?*"];
     let random = rand::thread_rng().gen_range(0, replies.len());
 
     reply_into_chat(&message, replies[random]);

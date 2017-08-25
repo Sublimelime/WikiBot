@@ -15,18 +15,18 @@ use self::serenity::utils::Colour;
 struct Mod {
     pub creation_date: String,
     pub last_updated: String,
-    pub thumb: String,
-    pub name: String,
+    pub thumb: String, //The thumb image of the mod
+    pub name: String, //Internal name of the mod
     pub author: String,
     pub link: String,
     pub download_count: u64,
     pub latest_version: String,
-    pub factorio_version: String,
+    pub factorio_version: String, //Latest factorio version the mod supports
     pub source_path: String,
     pub homepage: String,
     pub summary: String,
     pub title: String,
-    pub tag: Option<String>,
+    pub tag: Option<String>, //What tag the mod has
 }
 
 /// Creates an embed based on the recieved mod data. {{{1
@@ -86,6 +86,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         thumbnail = format!("{}", json["first_media_file"]["urls"]["thumb"]);
     }
 
+    // Formatting for home page/source page
     if !json["homepage"].is_null() && json["homepage"] != "" {
         homepage = format!("[Home]({})", json["homepage"]);
     }
@@ -110,6 +111,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         update_date.truncate(index as usize);
     }
 
+    // Make and return the mod
     Mod {
         creation_date: date,
         last_updated: update_date,
@@ -174,6 +176,7 @@ fn serialize_search_results(results: &JsonValue) -> String {
             break; //Don't put more than ten entries
         }
         let mut encoded_name = format!("{}", entry["name"]);
+        // URLS can't have spaces
         encoded_name = encoded_name.replace(" ", "%20");
         final_string += format!(
             "[{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
@@ -189,6 +192,7 @@ fn serialize_search_results(results: &JsonValue) -> String {
 /// Links a mod into chat based on args. {{{1
 command!(linkmod(_context, message) {
     let request = fix_message(message.content_safe(), "linkmod", &get_prefix_for_guild(&message.guild_id().unwrap()));
+    let _ = message.channel_id.broadcast_typing();
 
     // Check arg validity
     if request.is_empty() {
@@ -198,6 +202,7 @@ command!(linkmod(_context, message) {
             return Err(String::from("User didn't provide an argument."));
     }
 
+    // Make the mod api request
     let returned = make_request(&request);
     if !returned.is_empty() {
         let returned_results = &returned["results"];

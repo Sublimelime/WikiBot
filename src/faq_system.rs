@@ -4,7 +4,9 @@ extern crate json;
 
 use self::json::JsonValue;
 use self::serenity::utils::Colour;
-use self::serenity::model::GuildId;
+use self::serenity::model::{Message, GuildId};
+use std::fs::File;
+use std::io::prelude::*;
 
 use common_funcs::*;
 use constants::*;
@@ -13,6 +15,7 @@ use levenshtein::*;
 
 /// Prints out a grand list of all current stored faqs. {{{1
 command!(faqs(_context, message) {
+    let _ = message.channel_id.broadcast_typing();
     let parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
 
     let mut embed_content;
@@ -78,6 +81,7 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
 
 /// Retrieves a faq from the storage of the bot. {{{1
 command!(faq_get(_context, message, _args) {
+    let _ = message.channel_id.broadcast_typing();
     let parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
     let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
     let mut request = String::new();
@@ -260,6 +264,49 @@ fn jsonvalue_as_comma_list(json_value: &JsonValue) -> String {
     }
     result.push('.');
     result
+}
+
+/// Opens the faqs file, and returns the Json object contained {{{1
+/// within it. Returns a JsonValue
+pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
+    // Determine file name based on the guild in question
+    let faq_file = format!("{:?}-faqs.json", guild);
+
+    // Open the json file for writing, nuking any previous contents
+    let file_result = OpenOptions::new().read(true).open(faq_file.as_str());
+
+    match file_result { //If it errors here, it's probably because the file doesn't exist
+        Err(_) => {
+            let mut file_handle = File::create(faq_file).expect("Could not create faqs file.");
+            file_handle.write_all(b"{}").expect(
+                "Got error writing to newly created json file.",
+            ); //Write empty json object to it
+
+            return JsonValue::new_object(); //Return empty database
+        }
+        Ok(mut file) => {
+
+            let mut data = String::new();
+            file.read_to_string(&mut data).expect(
+                "Something went wrong reading the faqs file.",
+            );
+
+            let data = data.trim(); //Remove the newline from the end of the string if present
+
+            let result = json::parse(data);
+
+            if let Err(_) = result {
+                make_log_entry("Unable to parse json from faqs file.".to_owned(), "Error");
+                say_into_chat(
+                    &message,
+                    "Sorry, I couldn't read the database for this server.",
+                );
+                return JsonValue::new_object();
+            } else {
+                return result.unwrap();
+            }
+        }
+    }
 }
 
 // Tests {{{1
