@@ -53,7 +53,7 @@ fn main() {
     client.with_framework(move |f| {
         f.simple_bucket("slowly", 5)
             .simple_bucket("super-slowly", 10)
-            .simple_bucket("occasionally", 30)
+            .simple_bucket("occasionally", 20)
 
             .configure(|c|
                        c.dynamic_prefix(|_ctx, message| {

@@ -26,6 +26,7 @@ command!(ping(_context, message) {
     "Bots cannot have friends. Sorry.", "Do you like my steel plating?", "0 and 1 are all I need.",
     "Heh, you humans... Typing manually and stuff.... I don't get it.", "Never forget #BotsRights",
     "EXTERMIN... oh nevermind.", "Fun fact: I take about an hour to compile from scratch.",
+    "Over 1700 lines of code!", "Will you be the 1 to my 0?",
     // Other languages
     "*Tung!*", "*Servus!*", "*Hallo!*", "*Ahoj!*", "*Bonjour!*",
     "*Buon giorno!*", "*Wie gehts?*"];
@@ -52,6 +53,7 @@ command!(info(_context, message) {
                                                    .title("WikiBot")
                                                    .description(reply.as_str())
                                                    .field(|c| c.name("Author").value("Gangsir"))
+                                                   .field(|c| c.name("Current maintainer").value("Gangsir"))
                                                    .field(|c| c.name("Contact").value("I'm in the factorio discord server,
                                                                                         or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir)."))
                                                    .field(|c| c.name("Programming language").value("Made in [Rust](https://www.rust-lang.org)."))
