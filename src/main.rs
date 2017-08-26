@@ -44,6 +44,7 @@ fn main() {
 
     // Login with a bot token from the environment
     let mut client = Client::new(&token[..]);
+    make_log_entry("Created client with token successfully.".to_owned(), "Init");
 
     // Create defined perms for what is a person of power
     let mut is_powerful_perms: Permissions = Permissions::empty();
@@ -51,6 +52,8 @@ fn main() {
     is_powerful_perms.insert(Permissions::from_bits_truncate(0x10000000));
 
     install_prefixes();
+    make_log_entry("Configured prefixes from file.".to_owned(), "Init");
+
 
     // Configure client with framework {{{2
     client.with_framework(move |f| {
@@ -277,6 +280,7 @@ fn main() {
         ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
     });
 
+    make_log_entry("Configured bot succesfully.".to_owned(), "Init");
     // Init {{{2
     make_log_entry("Now waiting for connection...".to_owned(), "Status");
 

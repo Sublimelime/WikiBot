@@ -4,12 +4,9 @@ extern crate serenity;
 extern crate json;
 extern crate chrono;
 
-use self::json::*;
-use self::serenity::model::{Message, GuildId};
+use self::serenity::model::Message;
 use self::serenity::utils::Colour;
-use std::fs::{File, OpenOptions};
 use std::fmt::Display;
-use std::io::prelude::*;
 use constants::*;
 use self::chrono::Utc as UTC;
 

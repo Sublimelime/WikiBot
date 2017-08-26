@@ -26,36 +26,6 @@ pub fn get_prefix_for_guild(id: &GuildId) -> String {
     }
 }
 
-// Tests {{{1
-#[cfg(test)]
-mod tests {
-    use self::serenity::model::GuildId;
-    use super::*;
-
-    #[test]
-    fn guild_id_has_no_prefix() {
-        // Dummy ID to try to retrieve from PREFIXES
-        let id = GuildId::from(000000000000000000);
-        let prefix = get_prefix_for_guild(&id);
-        // Fail test if it returns a valid prefix
-        assert_eq!(prefix, "");
-    }
-
-    #[test]
-    fn adding_a_prefix_to_a_guild_id() {
-        //Setup vars
-        let id = GuildId::from(111111111111111111);
-        {
-            let mut prefixes = PREFIXES.lock().unwrap();
-            let _ = prefixes.insert(id, String::from("+"));
-        }
-
-        let prefix = get_prefix_for_guild(&id);
-
-        assert_eq!(prefix, "+");
-    }
-}
-
 /// Function that installs all saved prefixes into PREFIXES from {{{1
 /// a prefixes json file. Should be called on startup.
 pub fn install_prefixes() {
@@ -97,8 +67,39 @@ pub fn backup_prefixes() {
         for (key, value) in prefixes.iter() {
             json[key.0.to_string()] = value.clone().into();
         }
-        json.write(&mut file_handle);
+        if let Err(_) = json.write(&mut file_handle) {
+            println!("Couldn't backup prefix list to file.");
+        }
     } else {
-        println!("Couldn't backup prefix list to file.")
+        println!("Couldn't backup prefix list to file.");
+    }
+}
+// Tests {{{1
+#[cfg(test)]
+mod tests {
+    use self::serenity::model::GuildId;
+    use super::*;
+
+    #[test]
+    fn guild_id_has_no_prefix() {
+        // Dummy ID to try to retrieve from PREFIXES
+        let id = GuildId::from(000000000000000000);
+        let prefix = get_prefix_for_guild(&id);
+        // Fail test if it returns a valid prefix
+        assert_eq!(prefix, "");
+    }
+
+    #[test]
+    fn adding_a_prefix_to_a_guild_id() {
+        //Setup vars
+        let id = GuildId::from(111111111111111111);
+        {
+            let mut prefixes = PREFIXES.lock().unwrap();
+            let _ = prefixes.insert(id, String::from("+"));
+        }
+
+        let prefix = get_prefix_for_guild(&id);
+
+        assert_eq!(prefix, "+");
     }
 }

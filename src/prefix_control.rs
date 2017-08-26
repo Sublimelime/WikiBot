@@ -4,8 +4,6 @@ extern crate json;
 
 use constants::*;
 use common_funcs::*;
-use std::fs::OpenOptions;
-use std::io::prelude::*;
 
 /// Registers a prefix for the guild that it's used in. {{{1
 command!(register_prefix(_c, m, args) {

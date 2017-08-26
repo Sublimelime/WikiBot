@@ -43,9 +43,13 @@ command!(stop_process(_context, message) {
 
 /// Prints various info about the bot itself. {{{1
 command!(info(_context, message) {
-    let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
+    let mut server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
+    if server_prefix.is_empty() {
+        server_prefix = String::from("None, use mention.");
+    }
+
     let mut reply = String::from("A simple bot that fetches information related to factorio.\nFor help and a list of commands, use ");
-    reply.push_str(server_prefix.as_str());
+    reply.push_str(&server_prefix);
     reply.push_str("help. All commands that do not take arguments support talking after the commands with ||, commands that take arguments support it if it says so in help.
                    \nThanks, and enjoy! For info about the host of this bot, run the `host` command.");
     let _ = message.channel_id.send_message(|a| a
@@ -58,7 +62,8 @@ command!(info(_context, message) {
                                                                                         or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir)."))
                                                    .field(|c| c.name("Programming language").value("Made in [Rust](https://www.rust-lang.org)."))
                                                    .field(|c| c.name("Library").value("Made with [Serenity](https://crates.io/crates/serenity)."))
-                                                   .field(|c| c.name("Local prefix").value(server_prefix.as_str()))
+                                                   .field(|c| c.name("Source code").value("[Source](https://bitbucket.com/Gangsir/wikibot)"))
+                                                   .field(|c| c.name("Local prefix").value(&server_prefix))
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
                                                    ));
@@ -96,7 +101,7 @@ command!(uptime(_context, message) {
 /// Prints data about the host into the chat. {{{1
 command!(host(_context, message) {
     use std::env::consts::*;
-    let mut uptime = String::new();
+    let mut uptime;
 
     if let Ok(result) = Command::new("uptime").arg("-p").output() {
         uptime = String::from_utf8(result.stdout).unwrap();

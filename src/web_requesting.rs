@@ -214,8 +214,8 @@ mod tests {
     fn can_get_and_parse_current_version() {
         let mut response = reqwest::get("https://www.factorio.com").unwrap();
         let mut html = String::new();
-        let mut latest_stable = String::new();
-        let mut latest_experimental = String::new();
+        let mut latest_stable;
+        let mut latest_experimental;
         response.read_to_string(&mut html).unwrap();
         if let Some(loc) = html.find("Stable:") {
             latest_stable = get_stable_version_string(loc, &html);
