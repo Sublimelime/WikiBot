@@ -28,6 +28,7 @@ use faq_system::*;
 use web_requesting::*;
 use recipe_system::*;
 use linkmod::*;
+use constants::install_prefixes;
 
 /// Main function. {{{1
 fn main() {
@@ -48,6 +49,8 @@ fn main() {
     let mut is_powerful_perms: Permissions = Permissions::empty();
     // Add managing roles to definition
     is_powerful_perms.insert(Permissions::from_bits_truncate(0x10000000));
+
+    install_prefixes();
 
     // Configure client with framework {{{2
     client.with_framework(move |f| {
