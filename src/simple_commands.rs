@@ -62,7 +62,7 @@ command!(info(_context, message) {
                                                                                         or you can reddit PM me [here](https://www.reddit.com/message/compose?to=Gangsir)."))
                                                    .field(|c| c.name("Programming language").value("Made in [Rust](https://www.rust-lang.org)."))
                                                    .field(|c| c.name("Library").value("Made with [Serenity](https://crates.io/crates/serenity)."))
-                                                   .field(|c| c.name("Source code").value("[Source](https://bitbucket.com/Gangsir/wikibot)"))
+                                                   .field(|c| c.name("Source code").value("[Source](https://github.com/TheRealGangsir/WikiBot"))
                                                    .field(|c| c.name("Local prefix").value(&server_prefix))
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
