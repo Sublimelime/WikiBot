@@ -37,7 +37,7 @@ fn main() {
     let mut token = String::new();
     file.read_to_string(&mut token).expect(
         "Something went wrong reading the token file",
-    );
+        );
 
     let token = token.trim(); //Remove the newline from the end of the string if present
 
@@ -67,9 +67,7 @@ fn main() {
                        .allow_dm(true)
                        .allow_whitespace(true)
                        .on_mention(true) // Allow mentioning the bot to use commands
-                       .owners(vec![UserId(152193207726243840)].into_iter().collect()) //setup author to be owner
-
-                      )
+                       .owners(vec![UserId(152193207726243840)].into_iter().collect())) //setup author to be owner
             // META GROUP ------------------------- {{{3
             .group("Meta", |g| g
                    .command("ping", |c|
@@ -165,6 +163,7 @@ fn main() {
                                  .command("faq-list", |c|
                                           c.desc("Returns a list of all registered faqs.")
                                           .help_available(true)
+                                          .guild_only(true)
                                           .bucket("super-slowly")
                                           .exec(faqs))
                                  .command("faq-add", |c| c
@@ -174,6 +173,7 @@ fn main() {
                                   \n Can only be used by moderators.")
                                           .required_permissions(is_powerful_perms)
                                           .example("steam This is the ratio for steam:.....")
+                                          .guild_only(true)
                                           .min_args(2)
                                           .use_quotes(true)
                                           .max_args(2)
@@ -186,6 +186,7 @@ fn main() {
                                           .min_args(1)
                                           .example("steam")
                                           .known_as("faw")
+                                          .guild_only(true)
                                           .usage("name")
                                           .help_available(true)
                                           .exec(faq_get))
@@ -194,6 +195,7 @@ fn main() {
                                           .min_args(1)
                                           .example("steam")
                                           .help_available(true)
+                                          .guild_only(true)
                                           .required_permissions(is_powerful_perms)
                                           .usage("name")
                                           .exec(faq_delete))
@@ -201,11 +203,13 @@ fn main() {
                                           .desc("Deletes all faq. Can only be used by moderators.")
                                           .required_permissions(is_powerful_perms)
                                           .help_available(true)
+                                          .guild_only(true)
                                           .exec(faq_deleteall))
                                  .command("faq-set", |c| c
                                           .desc("Sets an existant faq to a different value. Can only be used by moderators.")
                                           .help_available(true)
                                           .example("steam This is the new ratio for steam:....")
+                                          .guild_only(true)
                                           .min_args(2)
                                           .use_quotes(true)
                                           .max_args(2)
@@ -278,4 +282,4 @@ fn main() {
     } else {
         println!("Client exited succesfully.");
     }
-}
+    }
