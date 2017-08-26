@@ -27,7 +27,7 @@ command!(faqs(_context, message) {
                                                  .content("List of all registered faqs:")
                                                  .embed(|b| b
                                                         .title("FAQs for this server:")
-                                                        .description(embed_content.as_str())
+                                                        .description(&embed_content)
                                                         .color(Colour::from_rgb(119,0,255))
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
@@ -69,6 +69,7 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
         // Write it back to the file
         write_faq_json(parsed_json, &message.guild_id().unwrap());
 
+        // Report success
         if let Err(_) = send_success_embed(&message, format!("Success, added faq `{}` for concept `{}`.", faq, name).as_str()) {
             say_into_chat(&message, format!("Success, added faq `{}` for concept `{}`.", faq, name));
         }
@@ -86,6 +87,7 @@ command!(faq_get(_context, message, _args) {
     let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
     let mut request = String::new();
 
+    // Correctly fix message based on which alias they use
     if message.content_safe().starts_with(format!("{}faq", server_prefix).as_str()) {
         request = fix_message(message.content_safe(), "faq", &server_prefix);
     } else if message.content_safe().starts_with(format!("{}faw", server_prefix).as_str()) {
@@ -101,6 +103,8 @@ command!(faq_get(_context, message, _args) {
     request = request.to_lowercase();
 
     // Key is not found, do a levenshtein search to see if they made a typo
+    // This will go through all the faqs and find a few that are similar to
+    // their request.
     if !parsed_json.has_key(request.as_str()) {
         let mut possiblities: Vec<&str> = Vec::new();
 
@@ -119,6 +123,7 @@ command!(faq_get(_context, message, _args) {
             say_into_chat(&message, format!("Unable to make embed, using fallback list: {:#?}", possiblities)) ;
         }
     } else { // Key is found literally
+        // Determine if the message also has an associated image
         if parsed_json[&request].len() > 1 {
             // Build message
             if let Err(_) = message.channel_id.send_message(|a| a
@@ -152,6 +157,7 @@ command!(faq_delete(_context, message) {
     let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
     let request = fix_message(message.content_safe(), "faq-delete ", &get_prefix_for_guild(&message.guild_id().unwrap()));
 
+    // Check if the faq exists
     if !parsed_json.has_key(request.as_str()) {
         let _ = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request).as_str());
     } else { // Key is found
@@ -196,6 +202,7 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
             let file = message.attachments.get(0);
             if let Some(image) = file {
                 let mut array = JsonValue::new_array();
+                // Add the text and image
                 let _ = array.push(faq.clone());
                 let _ = array.push(image.url.clone());
                 parsed_json[&name] = array;
@@ -237,10 +244,10 @@ pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
             format!(
                 "Error writing to json file,
             aborting with error: {:?}",
-                error
+            error
             ),
             "Error",
-        );
+            );
     } else {
         make_log_entry(format!("Wrote to json file: {}", faq_file), "Info");
     }
@@ -262,7 +269,7 @@ fn jsonvalue_as_comma_list(json_value: &JsonValue) -> String {
     if result.len() > 3 {
         result = String::from(&result[..result.len() - 2]);
     }
-    result.push('.');
+    result.push('.'); // Add a period to end the list
     result
 }
 
@@ -280,7 +287,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut file_handle = File::create(faq_file).expect("Could not create faqs file.");
             file_handle.write_all(b"{}").expect(
                 "Got error writing to newly created json file.",
-            ); //Write empty json object to it
+                ); //Write empty json object to it
 
             return JsonValue::new_object(); //Return empty database
         }
@@ -289,21 +296,20 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut data = String::new();
             file.read_to_string(&mut data).expect(
                 "Something went wrong reading the faqs file.",
-            );
+                );
 
             let data = data.trim(); //Remove the newline from the end of the string if present
 
-            let result = json::parse(data);
-
-            if let Err(_) = result {
-                make_log_entry("Unable to parse json from faqs file.".to_owned(), "Error");
-                say_into_chat(
-                    &message,
-                    "Sorry, I couldn't read the database for this server.",
-                );
-                return JsonValue::new_object();
-            } else {
-                return result.unwrap();
+            match json::parse(data) {
+                Ok(result) => result,
+                Err(_) => {
+                    make_log_entry("Unable to parse json from faqs file.".to_owned(), "Error");
+                    say_into_chat(
+                        &message,
+                        "Sorry, I couldn't read the database for this server.",
+                        );
+                    JsonValue::new_object()
+                }
             }
         }
     }

@@ -25,7 +25,7 @@ struct Mod {
     pub source_path: String,
     pub homepage: String,
     pub summary: String,
-    pub title: String,
+    pub title: String, //Pretty title of the mod
     pub tag: Option<String>, //What tag the mod has
 }
 
@@ -95,6 +95,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         source = format!("[Source](https://github.com/{})", json["github_path"]);
     }
 
+    // Format tag correctly for untagged mods
     let mut tag = None;
     if !json["tags"].is_empty() && !json["tags"].is_null() {
         tag = Some(format!("{}", json["tags"][0]["title"]))

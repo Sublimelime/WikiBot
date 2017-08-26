@@ -38,6 +38,7 @@ pub fn install_prefixes() {
 
         let mut prefixes = PREFIXES.lock().unwrap();
         for entry in parsed_json.entries() {
+            // Turn an entry into a GuildId, and prefix
             let (key, value) = entry;
             let key_parsed: u64 = key.parse::<u64>().expect(
                 "Could not parse valid ID from json.",
@@ -46,12 +47,16 @@ pub fn install_prefixes() {
         }
         println!("Finished reading prefixes into memory.");
     } else {
+        // Didn't find a prefix file, now we have to create it
         println!("Did not find file for list of prefixes, creating...");
+
         let mut file_handle =
             File::create("prefixes.json").expect("Could not create prefixes file.");
+
+        //Write empty json object to it, so reading it elsewhere doesn't crash
         file_handle.write_all(b"{}").expect(
             "Got error writing to newly created json file.",
-        ); //Write empty json object to it
+        );
     }
 }
 
@@ -64,9 +69,11 @@ pub fn backup_prefixes() {
             "prefixes.json",
         )
     {
+        // Add an entry for each entry in PREFIXES
         for (key, value) in prefixes.iter() {
             json[key.0.to_string()] = value.clone().into();
         }
+        // Write the final Json object to the file
         if let Err(_) = json.write(&mut file_handle) {
             println!("Couldn't backup prefix list to file.");
         }

@@ -14,10 +14,9 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
         return length_a;
     }
 
-    /* Initialize the vector.
-     *
-     * This is why it’s fast, normally a matrix is used,
-     * here we use a single vector. */
+    // Initialize the vector.
+    // This is why it’s fast, normally a matrix is used,
+    // here we use a single vector.
     let mut cache: Vec<usize> = vec![0; length_a];
     let mut index_a = 0;
     let mut distance_a;

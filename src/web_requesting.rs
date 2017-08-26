@@ -107,6 +107,7 @@ command!(version(_context, msg) {
             say_into_chat(&message, fail_message);
             return Err(String::from(fail_message));
         }
+        // Check that both the finds succesfully found what we were looking for
         if !latest_stable.is_empty() && !latest_experimental.is_empty() {
             if let Err(_) = send_version_embed(&message, &latest_stable, &latest_experimental) {
                 make_log_entry("Unable to send an embed of the results of a version query.".to_owned(), "Error");
