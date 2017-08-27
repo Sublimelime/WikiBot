@@ -138,7 +138,7 @@ fn main() {
                                          \nThis command supports pipe syntax.")
                                    .help_available(true)
                                    .example("Achiever")
-                                   .bucket("occasionally")
+                                   .bucket("slowly")
                                    .exec(linkmod))
                           .command("version", |c| c
                                    .desc("Returns the number of the latest version for stable and experimental. Due to expensive operations, can only be used once every 30 seconds.")
