@@ -148,7 +148,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
             "https://mods.factorio.com/mods/{}/{}",
             json["owner"],
             json["name"]
-        ),
+        ).replace(" ", "%20"),
     }
 }
 
@@ -174,7 +174,7 @@ fn make_request(request: &String) -> JsonValue {
 
 /// Makes an embed of search results. Takes a json array, and returns true {{{1
 /// if able to make an embed of all the results
-fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
+fn make_search_results_embed(message: &Message, results: &JsonValue) -> bool {
     let result = message.channel_id.send_message(|a| {
         a.embed(|b| {
             b.title("Search results:")
@@ -190,8 +190,12 @@ fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
 fn serialize_search_results(results: &JsonValue) -> String {
     let mut final_string = String::new();
     for (counter, entry) in results.members().enumerate() {
+        let version = format!("{}", entry["latest_release"]["factorio_version"]);
+        let version: f32 = version.parse::<f32>().unwrap_or(0.0);
         if counter > 10 {
             break; //Don't put more than ten entries
+        } else if version < 0.15 {
+            continue; //Filter mods that aren't for 0.15 or higher
         }
         let mut encoded_name = format!("{}", entry["name"]);
         // URLS can't have spaces
@@ -203,6 +207,9 @@ fn serialize_search_results(results: &JsonValue) -> String {
             encoded_name,
             entry["owner"]
         ).as_str();
+    }
+    if final_string.is_empty() {
+        return String::from("No results for current factorio stable version or higher.");
     }
     final_string
 }
@@ -226,6 +233,17 @@ command!(linkmod(_context, message) {
         let returned_results = &returned["results"];
 
         if !returned_results.is_null() && !returned_results.is_empty() {
+            // If there's only one search result
+            if returned_results.len() == 1 {
+                let modification = parse_json_into_mod(&returned_results[0]);
+                if !make_mod_embed(modification, &message) {
+                    say_into_chat(&message, "Unable to make an embed here.");
+                    return Err(String::from("Couldn't make an embed."));
+                } else {
+                    return Ok(());
+                }
+            }
+            // More than one search result, so let's list them
             for entry in returned_results.members() {
                 let modification = parse_json_into_mod(&entry);
 
@@ -233,6 +251,7 @@ command!(linkmod(_context, message) {
                 // internal name and the title
                 if levenshtein(&modification.name, &request) <= 3
                     || levenshtein(&modification.title, &request) <= 3 {
+                        // Got a match on this entry, so let's send it
                         if !make_mod_embed(modification, &message) {
                             say_into_chat(&message, "Unable to make an embed here.");
                             return Err(String::from("Couldn't make an embed."));
@@ -243,7 +262,7 @@ command!(linkmod(_context, message) {
             }
             // At this point, it hasn't found an exact match,
             // so let's just make an embed with all the results it found
-            if !make_search_results_embed(&message, returned_results.clone()) {
+            if !make_search_results_embed(&message, &returned_results) {
 
                 say_into_chat(&message, "Unable to make an embed of search results here.");
                 return Err(String::from("Couldn't make an embed of search results."));
