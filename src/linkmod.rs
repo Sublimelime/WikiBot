@@ -24,6 +24,7 @@ struct Mod {
     pub factorio_version: String, //Latest factorio version the mod supports
     pub source_path: String,
     pub homepage: String,
+    pub dependencies: String,
     pub summary: String,
     pub title: String, //Pretty title of the mod
     pub tag: Option<String>, //What tag the mod has
@@ -53,6 +54,7 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| c.name("Source code").value(&modification.source_path))
                 .field(|c| c.name("Homepage").value(&modification.homepage))
                 .field(|c| c.name("Last updated").value(&modification.last_updated))
+                .field(|c| c.name("Dependencies").value(&modification.dependencies))
                 .field(|c| c.name("Tagged").value(&tag_str))
                 .field(|c| c.name("Created on").value(&modification.creation_date))
                 .field(|c| {
@@ -112,6 +114,20 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         update_date.truncate(index as usize);
     }
 
+    let mut deps = String::from("No dependencies.");
+    let dependencies_json = &json["latest_release"]["info_json"]["dependencies"];
+    if !dependencies_json.is_null() && !dependencies_json.is_empty() {
+        deps.clear();
+        for entry in dependencies_json.members() {
+            let entry_str = format!("{}\n", entry);
+            if entry_str.starts_with("?") {
+                deps.push_str(&entry_str.replace("?", "Optional:"));
+            } else {
+                deps.push_str(&entry_str);
+            }
+        }
+    }
+
     // Make and return the mod
     Mod {
         creation_date: date,
@@ -126,6 +142,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         thumb: thumbnail,
         download_count: downloads,
         homepage: homepage,
+        dependencies: deps,
         source_path: source,
         link: format!(
             "https://mods.factorio.com/mods/{}/{}",
@@ -197,10 +214,10 @@ command!(linkmod(_context, message) {
 
     // Check arg validity
     if request.is_empty() {
-            if let Err(_) = send_error_embed(&message, "Expected a mod to search for.") {
-                say_into_chat(&message, "Expected a mod to search for.");
-            }
-            return Err(String::from("User didn't provide an argument."));
+        if let Err(_) = send_error_embed(&message, "Expected a mod to search for.") {
+            say_into_chat(&message, "Expected a mod to search for.");
+        }
+        return Err(String::from("User didn't provide an argument."));
     }
 
     // Make the mod api request
