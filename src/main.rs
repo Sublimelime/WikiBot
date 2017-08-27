@@ -189,7 +189,6 @@ fn main() {
                                           .desc("Retrieves a faq and prints it into chat.
                                   \nProvide a name for the faq to get.
                                   \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
-                                          .min_args(1)
                                           .example("steam")
                                           .known_as("faw")
                                           .guild_only(true)
