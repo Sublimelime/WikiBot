@@ -13,7 +13,7 @@ use self::chrono::Utc as UTC;
 /// Makes a log entry, by prepending the time and date of the entry to what's {{{1
 /// provided to the function.
 pub fn make_log_entry(entry: String, kind: &str) {
-    let timestamp: String = UTC::now().to_rfc3339();
+    let timestamp: String = UTC::now().to_rfc2822();
     println!("[{} at {}] {}", kind, timestamp, entry);
 }
 

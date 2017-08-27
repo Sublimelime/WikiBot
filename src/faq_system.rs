@@ -60,7 +60,7 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
             let _ = array.push(faq.clone());
             let _ = array.push(image.url.clone());
             parsed_json[&name] = array;
-        } else {
+        } else { //No attachment to the message
             let mut array = JsonValue::new_array();
             let _ = array.push(faq.clone());
             parsed_json[&name] = array;

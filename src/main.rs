@@ -226,11 +226,23 @@ fn main() {
                                  .on_dispatch_error(|_ctx, msg, error| {
                                      match error {
                                          DispatchError::RateLimited(seconds) => {
-                                             make_log_entry("User triggered ratelimit bucket.".to_owned(), "Status");
+                                             make_log_entry("User triggered ratelimit bucket.".to_owned(), "Info");
                                              say_into_chat(&msg, format!("Woah! This command is hard for me to do, could you try again in {} seconds? :sweat_smile:", seconds));
                                          }
-                                         DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners => {
-                                             let _ = send_error_embed(&msg, "Sorry, you don't have permission to do that.");
+                                         DispatchError::CommandDisabled(_) => {
+                                             say_into_chat(&msg, "Sorry, this command is disabled due to abuse or unstability.");
+                                         }
+                                         DispatchError::BlockedUser | DispatchError::BlockedGuild => {
+                                             make_log_entry("Ignoring command by blocked user/guild...".to_owned(), "Info");
+                                         }
+                                         DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners | DispatchError::CheckFailed => {
+                                             if let Err(_) = send_error_embed(&msg, "Sorry, you don't have permission to do that.") {
+                                             say_into_chat(&msg, "Sorry, you don't have permission to do that.");
+                                             }
+                                         }
+                                         DispatchError::OnlyForDM | DispatchError::OnlyForGuilds => {
+                                             let _ = send_error_embed(&msg, "Sorry, I can't preform this command here.
+                                                                      It can only be used in either guilds or DMs.");
                                          }
                                          DispatchError::NotEnoughArguments{min, given} => {
                                              let _ = send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
