@@ -1,11 +1,11 @@
-extern crate serenity;
-extern crate rand;
+use rand::{thread_rng, Rng};
 
-use self::rand::Rng;
-use common_funcs::*;
-use std::process::Command;
+use serenity::utils::Colour;
+
 use std::process;
-use self::serenity::utils::Colour;
+use std::process::Command;
+
+use common_funcs::*;
 use constants::*;
 
 lazy_static! {
@@ -14,7 +14,7 @@ lazy_static! {
 
 /// Your standard ping command, replies with random replies {{{1
 command!(ping(_context, message) {
-    let reply = rand::thread_rng().choose(&REPLIES).unwrap();
+    let reply = thread_rng().choose(&REPLIES).unwrap();
     reply_into_chat(&message, reply);
 });
 

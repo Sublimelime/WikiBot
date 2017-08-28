@@ -1,11 +1,12 @@
-extern crate serenity;
-extern crate json;
+use json;
+use json::JsonValue;
 
-use self::json::*;
-use std::fs::File;
+use serenity::utils::Colour;
+
 use std::collections::BTreeMap;
+use std::fs::File;
 use std::io::Read;
-use self::serenity::utils::Colour;
+
 use common_funcs::*;
 use constants::*;
 use levenshtein::*;

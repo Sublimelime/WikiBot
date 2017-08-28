@@ -1,14 +1,14 @@
 /// A file that holds all the constants that my bot uses.
 
-extern crate serenity;
-extern crate json;
+use json;
+use json::JsonValue;
 
-use std::sync::{Arc, Mutex};
+use serenity::model::GuildId;
+
 use std::collections::HashMap;
-use self::serenity::model::GuildId;
-use std::io::prelude::*;
-use self::json::JsonValue;
 use std::fs::{File, OpenOptions};
+use std::io::prelude::*;
+use std::sync::{Arc, Mutex};
 
 lazy_static! {
     pub static ref PREFIXES: Arc<Mutex<HashMap<GuildId, String>>> = Arc::new(Mutex::new(HashMap::new()));
