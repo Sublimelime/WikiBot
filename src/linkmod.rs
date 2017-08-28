@@ -33,11 +33,9 @@ struct Mod {
 /// Creates an embed based on the recieved mod data. {{{1
 /// Returns true if successful.
 fn make_mod_embed(modification: Mod, message: &Message) -> bool {
-    let mut tag_str = String::from("Not tagged.");
-    if let Some(ref tag) = modification.tag {
-        tag_str = tag.clone();
-    }
-    let result = message.channel_id.send_message(move |a| {
+    let tag_str = modification.tag.as_ref().map(String::as_str).unwrap_or("Not tagged.");
+
+    let result = message.channel_id.send_message(|a| {
         a.embed(|b| {
             b.description(&modification.summary)
                 .author(|c| c.name(&modification.title).url(&modification.link))
@@ -174,29 +172,29 @@ fn make_request(request: &String) -> JsonValue {
 
 /// Makes an embed of search results. Takes a json array, and returns true {{{1
 /// if able to make an embed of all the results
-fn make_search_results_embed(message: &Message, results: &JsonValue) -> bool {
-    let result = message.channel_id.send_message(|a| {
+
+fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
+    message.channel_id.send_message(|a| {
         a.embed(|b| {
             b.title("Search results:")
                 .description(&serialize_search_results(&results))
                 .color(Colour::from_rgb(255, 34, 108))
                 .timestamp(message.timestamp.to_rfc3339())
         })
-    });
-    if let Err(_) = result { false } else { true }
+    }).is_ok()
 }
 
 /// Takes a json array as input, returns a string of the search results serialized. {{{1
 fn serialize_search_results(results: &JsonValue) -> String {
     let mut final_string = String::new();
-    for (counter, entry) in results.members().enumerate() {
+
+    for entry in results.members().take(10) {
         let version = format!("{}", entry["latest_release"]["factorio_version"]);
         let version: f32 = version.parse::<f32>().unwrap_or(0.0);
-        if counter > 10 {
-            break; //Don't put more than ten entries
-        } else if version < 0.15 {
+        if version < 0.15 {
             continue; //Filter mods that aren't for 0.15 or higher
         }
+
         let mut encoded_name = format!("{}", entry["name"]);
         // URLS can't have spaces
         encoded_name = encoded_name.replace(" ", "%20");
