@@ -1,16 +1,17 @@
 /// A file used to hold all commands that make web requests.
 
-extern crate atom_syndication;
-extern crate serenity;
-extern crate reqwest;
+use atom_syndication::Feed;
+
+use reqwest;
+
+use serenity::Error;
+use serenity::model::Message;
+use serenity::utils::Colour;
+
+use std::io::{BufReader, Read};
+use std::thread;
 
 use common_funcs::*;
-use std::thread;
-use self::atom_syndication::Feed;
-use self::serenity::model::Message;
-use self::serenity::utils::Colour;
-use self::serenity::Error;
-use std::io::{BufReader, Read};
 
 /// Requests a link to the newest FFF posted by the devs. {{{1
 command!(fff(_context, msg) {

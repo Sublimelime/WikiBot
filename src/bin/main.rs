@@ -1,34 +1,17 @@
-#[macro_use]
 extern crate serenity;
+extern crate wikibot;
 
-#[macro_use]
-extern crate lazy_static;
-
-use std::fs::File;
-use std::io::prelude::*;
 use serenity::client::Client;
 use serenity::model::{UserId, Permissions};
 use serenity::framework::{help_commands, DispatchError};
 
-// Other files
-mod faq_system;
-mod levenshtein;
-mod web_requesting;
-mod constants;
-mod prefix_control;
-mod recipe_system;
-mod simple_commands;
-mod common_funcs;
-mod linkmod;
+use std::fs::File;
+use std::io::prelude::*;
 
-use prefix_control::*;
-use simple_commands::*;
-use common_funcs::*;
-use faq_system::*;
-use web_requesting::*;
-use recipe_system::*;
-use linkmod::*;
-use constants::install_prefixes;
+use wikibot::commands::*;
+use wikibot::common_funcs::*;
+use wikibot::constants;
+use wikibot::constants::install_prefixes;
 
 /// Main function. {{{1
 fn main() {

@@ -1,14 +1,14 @@
 /// A file containing functions, and small commands
 
-extern crate serenity;
-extern crate json;
-extern crate chrono;
+use chrono::Utc as UTC;
 
-use self::serenity::model::Message;
-use self::serenity::utils::Colour;
+use serenity;
+use serenity::model::Message;
+use serenity::utils::Colour;
+
 use std::fmt::Display;
+
 use constants::*;
-use self::chrono::Utc as UTC;
 
 /// Makes a log entry, by prepending the time and date of the entry to what's {{{1
 /// provided to the function.

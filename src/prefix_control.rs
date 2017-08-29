@@ -1,7 +1,5 @@
 /// Holds command definitions for manipulating prefixes
 
-extern crate json;
-
 use constants::*;
 use common_funcs::*;
 

@@ -1,14 +1,16 @@
-extern crate serenity;
-extern crate json;
-extern crate reqwest;
+use json;
+use json::JsonValue;
 
-use constants::*;
-use common_funcs::*;
-use levenshtein::*;
-use self::json::JsonValue;
+use reqwest;
+
+use serenity::model::Message;
+use serenity::utils::Colour;
+
 use std::io::Read;
-use self::serenity::model::Message;
-use self::serenity::utils::Colour;
+
+use common_funcs::*;
+use constants::*;
+use levenshtein::*;
 
 /// Struct used to hold a bunch of data about a mod, for easy passing {{{1
 #[derive(Debug)]
@@ -260,7 +262,7 @@ command!(linkmod(_context, message) {
             }
             // At this point, it hasn't found an exact match,
             // so let's just make an embed with all the results it found
-            if !make_search_results_embed(&message, &returned_results) {
+            if !make_search_results_embed(&message, returned_results.clone()) {
 
                 say_into_chat(&message, "Unable to make an embed of search results here.");
                 return Err(String::from("Couldn't make an embed of search results."));

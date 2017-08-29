@@ -1,16 +1,14 @@
-extern crate serenity;
-extern crate rand;
-extern crate json;
+use json;
+use json::JsonValue;
 
-use self::json::JsonValue;
-use self::serenity::utils::Colour;
-use self::serenity::model::{Message, GuildId};
-use std::fs::File;
+use serenity::utils::Colour;
+use serenity::model::{Message, GuildId};
+
+use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 
 use common_funcs::*;
 use constants::*;
-use std::fs::OpenOptions;
 use levenshtein::*;
 
 /// Prints out a grand list of all current stored faqs. {{{1
