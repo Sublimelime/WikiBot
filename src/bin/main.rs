@@ -1,4 +1,5 @@
 extern crate serenity;
+#[macro_use]
 extern crate wikibot;
 
 use serenity::client::Client;
@@ -27,7 +28,7 @@ fn main() {
 
     // Login with a bot token from the environment
     let mut client = Client::new(&token[..]);
-    make_log_entry("Created client with token successfully.".to_owned(), "Init");
+    log_init!("Created client with token successfully.");
 
     // Create defined perms for what is a person of power
     let mut is_powerful_perms: Permissions = Permissions::empty();
@@ -35,7 +36,7 @@ fn main() {
     is_powerful_perms.insert(Permissions::from_bits_truncate(0x10000000));
 
     install_prefixes();
-    make_log_entry("Configured prefixes from file.".to_owned(), "Init");
+    log_init!("Configured prefixes from file.");
 
 
     // Configure client with framework {{{2
@@ -208,14 +209,14 @@ fn main() {
                                  .on_dispatch_error(|_ctx, msg, error| {
                                      match error {
                                          DispatchError::RateLimited(seconds) => {
-                                             make_log_entry("User triggered ratelimit bucket.".to_owned(), "Info");
+                                             log_info!("User triggered ratelimit bucket.");
                                              say_into_chat(&msg, format!("Woah! This command is hard for me to do, could you try again in {} seconds? :sweat_smile:", seconds));
                                          }
                                          DispatchError::CommandDisabled(_) => {
                                              say_into_chat(&msg, "Sorry, this command is disabled due to abuse or unstability.");
                                          }
                                          DispatchError::BlockedUser | DispatchError::BlockedGuild => {
-                                             make_log_entry("Ignoring command by blocked user/guild...".to_owned(), "Info");
+                                             log_info!("Ignoring command by blocked user/guild...");
                                          }
                                          DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners | DispatchError::CheckFailed => {
                                              if let Err(_) = send_error_embed(&msg, "Sorry, you don't have permission to do that.") {
@@ -229,38 +230,41 @@ fn main() {
                                          DispatchError::NotEnoughArguments{min, given} => {
                                              let _ = send_error_embed(&msg, format!("I'm sorry, input was incomplete, I was expecting {} args, but you sent {}.", min, given).as_str());
                                          }
-                                         _ => make_log_entry("Got unknown dispatch error.".to_owned(), "Error")
+                                         _ => log_error!("Got unknown dispatch error.")
                                      }
                                  })
         // BEFORE/AFTER {{{3
         .before(|_, msg, command_name| {
             // Print info about the command use into log
-            make_log_entry(format!("Got command '{}' by user '{}#{}', running...",
-                                   command_name,
-                                   msg.author.name,
-                                   msg.author.discriminator), "Info");
+            log_info!(
+                "Got command '{}' by user '{}#{}', running...",
+                command_name,
+                msg.author.name,
+                msg.author.discriminator);
             true
         })
         .after(|_, msg, command_name, error| {
             // Print info about the command use into log
             if let Err(reason) = error {
-                make_log_entry(format!("Got error during command '{}' by user '{}#{}', error is: {:?}",
-                                       command_name,
-                                       msg.author.name,
-                                       msg.author.discriminator,
-                                       reason), "CMD-Error");
+                make_log_entry!("CMD-Error",
+                                "Got error during command '{}' by user '{}#{}', error is: {:?}",
+                                command_name,
+                                msg.author.name,
+                                msg.author.discriminator,
+                                reason);
             } else {
-                make_log_entry(format!("Completed command '{}' by user '{}#{}'",
-                                       command_name,
-                                       msg.author.name,
-                                       msg.author.discriminator), "Info");
+                log_info!(
+                    "Completed command '{}' by user '{}#{}'",
+                    command_name,
+                    msg.author.name,
+                    msg.author.discriminator);
             }
         })
     });
 
     // Ready/Resume handlers {{{2
     client.on_ready(|ctx, ready| {
-        make_log_entry(format!("{} is connected!", ready.user.name), "Status");
+        log_status!("{} is connected!", ready.user.name);
         ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
         // List current servers into log
         println!("{} is now online in the following guilds:", ready.user.name);
@@ -270,13 +274,13 @@ fn main() {
     });
 
     client.on_resume(|ctx, _res| {
-        make_log_entry("Resumed after a disconnect.".to_owned(), "Status");
+        log_status!("Resumed after a disconnect.");
         ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
     });
 
-    make_log_entry("Configured bot succesfully.".to_owned(), "Init");
+    log_init!("Configured bot succesfully.");
     // Init {{{2
-    make_log_entry("Now waiting for connection...".to_owned(), "Status");
+    log_status!("Now waiting for connection...");
 
     if let Err(why) = client.start() {
         println!("Err with client: {:?}", why);

@@ -1,7 +1,5 @@
 /// A file containing functions, and small commands
 
-use chrono::Utc as UTC;
-
 use serenity;
 use serenity::model::Message;
 use serenity::utils::Colour;
@@ -9,13 +7,6 @@ use serenity::utils::Colour;
 use std::fmt::Display;
 
 use constants::*;
-
-/// Makes a log entry, by prepending the time and date of the entry to what's {{{1
-/// provided to the function.
-pub fn make_log_entry(entry: String, kind: &str) {
-    let timestamp: String = UTC::now().to_rfc2822();
-    println!("[{} at {}] {}", kind, timestamp, entry);
-}
 
 /// Sends a simple error embed. Provide the reason for erroring. {{{1
 pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
@@ -48,14 +39,10 @@ where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
-        make_log_entry(
-            format!(
-                "Unable to send reply message: {}. Error is {}",
-                speech,
-                error
-            ),
-            "Error",
-        );
+        log_error!(
+            "Unable to send reply message: {}. Error is {}",
+            speech,
+            error);
     }
 }
 
@@ -66,14 +53,10 @@ where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
-        make_log_entry(
-            format!(
-                "Unable to send reply message: {}. Error is {}",
-                speech,
-                error
-            ),
-            "Error",
-        );
+        log_error!(
+            "Unable to send reply message: {}. Error is {}",
+            speech,
+            error);
     }
 }
 

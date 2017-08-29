@@ -47,7 +47,7 @@ command!(fff(_context, msg) {
 
                         // Send the FFF embed detailing it
                         if let Err(error) = send_fff_embed(&message, update_time, link, number) {
-                            make_log_entry(format!("Got error sending embed for fff results, {}", error), "Error");
+                            log_error!("Got error sending embed for fff results, {}", error);
                             reply_into_chat(&message, "Sorry, I was unable to send the results as an embed. Instead, have them plain:");
                             say_into_chat(&message, format!("Latest FFF as of roughly {}:\n{}", update_time, link).as_str());
                         }
@@ -111,7 +111,7 @@ command!(version(_context, msg) {
         // Check that both the finds succesfully found what we were looking for
         if !latest_stable.is_empty() && !latest_experimental.is_empty() {
             if let Err(_) = send_version_embed(&message, &latest_stable, &latest_experimental) {
-                make_log_entry("Unable to send an embed of the results of a version query.".to_owned(), "Error");
+                log_error!("Unable to send an embed of the results of a version query.");
                 say_into_chat(&message, format!("I got a result, but was unable to send an embed of the results.
                               \nInstead, have them plain:\n Latest Stable: {}\nLatest experimental: {}", latest_stable, latest_experimental));
             }

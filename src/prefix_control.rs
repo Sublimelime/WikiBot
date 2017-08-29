@@ -35,10 +35,9 @@ command!(register_prefix(_c, m, args) {
     // Edit prefixes file with new prefix
     backup_prefixes();
 
-    make_log_entry(format!("Changed prefix of server id {:?}, to new prefix {}",
+    log_prefix!("Changed prefix of server id {:?}, to new prefix {}",
                            m.guild_id().unwrap(),
-                           prefix),
-                           "Prefix");
+                           prefix);
 });
 
 // Tests {{{1
