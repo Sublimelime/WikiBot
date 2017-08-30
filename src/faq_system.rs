@@ -238,16 +238,9 @@ pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
 
     // Write json to file
     if let Err(error) = value.write(&mut file) {
-        make_log_entry(
-            format!(
-                "Error writing to json file,
-            aborting with error: {:?}",
-                error
-            ),
-            "Error",
-        );
+        log_error!("Error writing to json file, aborting with error: {:?}", error);
     } else {
-        make_log_entry(format!("Wrote to json file: {}", faq_file), "Info");
+        log_info!("Wrote to json file: {}", faq_file);
     }
 }
 
@@ -304,7 +297,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             match json::parse(data) {
                 Ok(result) => result,
                 Err(_) => {
-                    make_log_entry("Unable to parse json from faqs file.".to_owned(), "Error");
+                    log_error!("Unable to parse json from faqs file.");
                     say_into_chat(
                         &message,
                         "Sorry, I couldn't read the database for this server.",

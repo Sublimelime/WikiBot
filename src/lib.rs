@@ -8,6 +8,10 @@ extern crate reqwest;
 #[macro_use]
 extern crate serenity;
 
+// log mod must be declared before the others for the macros to work
+#[macro_use]
+pub mod log;
+
 pub mod common_funcs;
 pub mod constants;
 mod faq_system;
