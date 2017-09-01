@@ -35,7 +35,9 @@ struct Mod {
 /// Creates an embed based on the recieved mod data. {{{1
 /// Returns true if successful.
 fn make_mod_embed(modification: Mod, message: &Message) -> bool {
-    let tag_str = modification.tag.as_ref().map(String::as_str).unwrap_or("Not tagged.");
+    let tag_str = modification.tag.as_ref().map(String::as_str).unwrap_or(
+        "Not tagged.",
+    );
 
     let result = message.channel_id.send_message(|a| {
         a.embed(|b| {
@@ -47,11 +49,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| c.name("Author").value(&modification.author))
                 .field(|c| {
                     c.name("Downloads").value(&format!(
-                            "{} downloads",
-                            modification.download_count
-                            ))
+                        "{} downloads",
+                        modification.download_count
+                    ))
                 })
-            .field(|c| c.name("Source code").value(&modification.source_path))
+                .field(|c| c.name("Source code").value(&modification.source_path))
                 .field(|c| c.name("Homepage").value(&modification.homepage))
                 .field(|c| c.name("Last updated").value(&modification.last_updated))
                 .field(|c| c.name("Dependencies").value(&modification.dependencies))
@@ -60,13 +62,13 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| {
                     c.name("Latest mod version").value(
                         &modification.latest_version,
-                        )
-                })
-            .field(|c| {
-                c.name("Factorio version").value(
-                    &modification.factorio_version,
                     )
-            })
+                })
+                .field(|c| {
+                    c.name("Factorio version").value(
+                        &modification.factorio_version,
+                    )
+                })
         })
     });
     if let Err(error) = result {
@@ -153,7 +155,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
             "https://mods.factorio.com/mods/{}/{}",
             json["owner"],
             json["name"]
-            ).replace(" ", "%20"),
+        ).replace(" ", "%20"),
     }
 }
 
@@ -162,7 +164,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
 fn make_request(request: &String) -> JsonValue {
     let response = reqwest::get(
         format!("https://mods.factorio.com/api/mods?q={}", request).as_str(),
-        );
+    );
 
     if let Ok(mut response) = response {
         if response.status().is_success() {
@@ -181,14 +183,17 @@ fn make_request(request: &String) -> JsonValue {
 /// if able to make an embed of all the results
 
 fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
-    message.channel_id.send_message(|a| {
-        a.embed(|b| {
-            b.title("Search results:")
-                .description(&serialize_search_results(&results))
-                .color(Colour::from_rgb(255, 34, 108))
-                .timestamp(message.timestamp.to_rfc3339())
+    message
+        .channel_id
+        .send_message(|a| {
+            a.embed(|b| {
+                b.title("Search results:")
+                    .description(&serialize_search_results(&results))
+                    .color(Colour::from_rgb(255, 34, 108))
+                    .timestamp(message.timestamp.to_rfc3339())
+            })
         })
-    }).is_ok()
+        .is_ok()
 }
 
 /// Takes a json array as input, returns a string of the search results serialized. {{{1
@@ -211,7 +216,7 @@ fn serialize_search_results(results: &JsonValue) -> String {
             entry["owner"],
             encoded_name,
             entry["owner"]
-            ).as_str();
+        ).as_str();
     }
     if final_string.is_empty() {
         return String::from("No results for current factorio stable version or higher.");

@@ -37,28 +37,30 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
 
 /// Replies a message into chat, pinging the original summoner. {{{1
 pub fn reply_into_chat<T>(message: &Message, speech: T)
-    where
+where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
         log_error!(
             "Unable to send reply message: {}. Error is {}",
             speech,
-            error);
+            error
+        );
     }
 }
 
 /// Says a message into chat. Takes the Message object of the event, {{{1
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
-    where
+where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
         log_error!(
             "Unable to send reply message: {}. Error is {}",
             speech,
-            error);
+            error
+        );
     }
 }
 
@@ -90,7 +92,7 @@ pub fn fix_message(message: String, command: &str, prefix: &str) -> String {
 /// be empty.
 pub fn get_closest_match<'a>(list: &[&'a str], request: &'a str) -> (usize, &'a str) {
     // Short circut if there's an exact match
-    if let Some(found) = list.iter().find(|&&p|p == request) {
+    if let Some(found) = list.iter().find(|&&p| p == request) {
         return (0, found);
     }
     // Build a ranked list of close matches
