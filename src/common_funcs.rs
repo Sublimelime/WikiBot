@@ -5,8 +5,10 @@ use serenity::model::Message;
 use serenity::utils::Colour;
 
 use std::fmt::Display;
+use std::collections::BTreeMap;
 
 use constants::*;
+use levenshtein::*;
 
 /// Sends a simple error embed. Provide the reason for erroring. {{{1
 pub fn send_error_embed(message: &Message, reason: &str) -> serenity::Result<Message> {
@@ -35,7 +37,7 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
 
 /// Replies a message into chat, pinging the original summoner. {{{1
 pub fn reply_into_chat<T>(message: &Message, speech: T)
-where
+    where
     T: Display,
 {
     if let Err(error) = message.reply(format!("{}", speech).as_str()) {
@@ -49,7 +51,7 @@ where
 /// Says a message into chat. Takes the Message object of the event, {{{1
 /// and a str to say.
 pub fn say_into_chat<T>(message: &Message, speech: T)
-where
+    where
     T: Display,
 {
     if let Err(error) = message.channel_id.say(format!("{}", speech).as_str()) {
@@ -83,6 +85,26 @@ pub fn fix_message(message: String, command: &str, prefix: &str) -> String {
 }
 
 
+/// Takes a slice of strs and a request, returns the distance and the {{{1
+/// str that is the closest match. Makes the assumption that list will never
+/// be empty.
+pub fn get_closest_match<'a>(list: &[&'a str], request: &'a str) -> (usize, &'a str) {
+    // Short circut if there's an exact match
+    if let Some(found) = list.iter().find(|&&p|p == request) {
+        return (0, found);
+    }
+    // Build a ranked list of close matches
+    let mut possiblities = BTreeMap::new();
+
+    for entry in list.iter() {
+        possiblities.insert(levenshtein(entry, request), entry);
+    }
+
+    //return the smallest distance key, unwrap because there should be a value
+    let (dist, smallest) = possiblities.iter_mut().next().unwrap();
+    return (*dist, smallest);
+}
+
 // Tests {{{1
 #[cfg(test)]
 mod tests {
@@ -97,6 +119,24 @@ mod tests {
     fn can_fix_messages_without_arg() {
         let message = String::from("+faqs get");
         assert_eq!("", fix_message(message, "faqs get", "+"))
+    }
+
+    #[test]
+    fn closest_match_with_exact() {
+        let request = "beacon";
+        let list = vec!["wiki", "beacon", "twelve", "blah", "test"];
+        let (dist, closest_match) = get_closest_match(list, request);
+        assert_eq!(closest_match, "beacon");
+        assert_eq!(dist, 0);
+    }
+
+    #[test]
+    fn closest_match_with_slightly_incorrect() {
+        let request = "baecon";
+        let list = vec!["wiki", "beacon", "twelve", "blah", "test"];
+        let (dist, closest_match) = get_closest_match(list, request);
+        assert_eq!(closest_match, "beacon");
+        assert_eq!(dist, 3);
     }
 
     #[test]

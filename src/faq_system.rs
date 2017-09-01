@@ -95,57 +95,53 @@ command!(faq_get(_context, message, _args) {
     if request.is_empty() {
         // Call the other command's function, since the user is looking for a list
         return faqs(_context, message, _args);
+    } else if parsed_json.is_empty() {
+        let _ = send_error_embed(&message, "Sorry, no FAQs configured.");
+        return Err(String::from("No FAQs configured, cannot pick one."));
     }
 
     // Make lowercase
     request = request.to_lowercase();
 
-    // Key is not found, do a levenshtein search to see if they made a typo
-    // This will go through all the faqs and find a few that are similar to
-    // their request.
-    if !parsed_json.has_key(request.as_str()) {
-        let mut possiblities: Vec<&str> = Vec::new();
+    // Create a list of just keys
+    let faq_key_list: Vec<&str> = parsed_json.entries().map(|(key, _value)| {
+        key
+    }).collect();
 
-        for entry in parsed_json.entries() {
-            let (key, _value) = entry;
-            if levenshtein(key, request.as_str()) < 5 {
-                possiblities.push(key);
-            }
-        }
-        // Clean up the output
-        let possiblities_pretty = String::from(format!("{:?}.", possiblities)).replace("[", "").replace("]", "").replace('"', "");
-        if let Err(_) = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. Did you mean one of the following?\n{}",
-                                                           request,
-                                                           possiblities_pretty
-                                                          ).as_str()) {
-            say_into_chat(&message, format!("Unable to make embed, using fallback list: {:#?}", possiblities)) ;
-        }
-    } else { // Key is found literally
-        // Determine if the message also has an associated image
-        if parsed_json[&request].len() > 1 {
-            // Build message
-            if let Err(_) = message.channel_id.send_message(|a| a
-                                                            .embed(|b| b
-                                                                   .title(request.as_str())
-                                                                   .description(parsed_json[&request][0].as_str().unwrap())
-                                                                   .image(parsed_json[&request][1].as_str().unwrap())
-                                                                   .color(Colour::from_rgb(119,0,255))
-                                                                   .timestamp(message.timestamp.to_rfc3339())
-                                                                  )) {
-                say_into_chat(&message, format!("FAQ for `{}`:\n```{}```\n(Normally there would be an image here.)", request, parsed_json[&request][0].as_str().unwrap()));
-            }
+    // Find the closest match to what they asked for
+    let (dist, closest_match) = get_closest_match(&faq_key_list, &request);
 
-        } else if parsed_json[&request].len() == 1 {
-            // Build message
-            if let Err(_) = message.channel_id.send_message(|a| a
-                                                            .embed(|b| b
-                                                                   .title(request.as_str())
-                                                                   .description(parsed_json[&request][0].as_str().unwrap())
-                                                                   .color(Colour::from_rgb(119,0,255))
-                                                                   .timestamp(message.timestamp.to_rfc3339())
-                                                                  )) {
-                say_into_chat(&message, format!("FAQ for `{}`:\n```{}```", request, parsed_json[&request][0].as_str().unwrap()));
-            }
+    if dist > 0 && dist <= 5 {
+        say_into_chat(&message, &format!("I didn't find `{}`, but I did find the next closest FAQ, `{}`:", request, closest_match));
+    } else if dist > 5 {
+        let _ = send_error_embed(&message, &format!("I didn't find `{}`, and no other FAQ was similar enough.", request));
+        return Err(String::from("FAQ distance was too great from request, failing out..."));
+    }
+
+    // Determine if the message also has an associated image
+    if parsed_json[closest_match].len() == 2 {
+        // Build message
+        if let Err(_) = message.channel_id.send_message(|a| a
+                                                        .embed(|b| b
+                                                               .title(closest_match)
+                                                               .description(parsed_json[closest_match][0].as_str().unwrap())
+                                                               .image(parsed_json[closest_match][1].as_str().unwrap())
+                                                               .color(Colour::from_rgb(119,0,255))
+                                                               .timestamp(message.timestamp.to_rfc3339())
+                                                              )) {
+            say_into_chat(&message, format!("FAQ for `{}`:\n```{}```\n(Normally there would be an image here.)", request, parsed_json[closest_match][0].as_str().unwrap()));
+        }
+
+    } else if parsed_json[closest_match].len() == 1 {
+        // Build message
+        if let Err(_) = message.channel_id.send_message(|a| a
+                                                        .embed(|b| b
+                                                               .title(closest_match)
+                                                               .description(parsed_json[closest_match][0].as_str().unwrap())
+                                                               .color(Colour::from_rgb(119,0,255))
+                                                               .timestamp(message.timestamp.to_rfc3339())
+                                                              )) {
+            say_into_chat(&message, format!("FAQ for `{}`:\n```{}```", request, parsed_json[closest_match][0].as_str().unwrap()));
         }
     }
 });
@@ -281,7 +277,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut file_handle = File::create(faq_file).expect("Could not create faqs file.");
             file_handle.write_all(b"{}").expect(
                 "Got error writing to newly created json file.",
-            ); //Write empty json object to it
+                ); //Write empty json object to it
 
             return JsonValue::new_object(); //Return empty database
         }
@@ -290,7 +286,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut data = String::new();
             file.read_to_string(&mut data).expect(
                 "Something went wrong reading the faqs file.",
-            );
+                );
 
             let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -301,7 +297,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
                     say_into_chat(
                         &message,
                         "Sorry, I couldn't read the database for this server.",
-                    );
+                        );
                     JsonValue::new_object()
                 }
             }

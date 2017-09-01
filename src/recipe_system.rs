@@ -3,7 +3,6 @@ use json::JsonValue;
 
 use serenity::utils::Colour;
 
-use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Read;
 
@@ -40,15 +39,19 @@ command!(recipe(_context, message) {
         let request = fix_message(message.content_safe(), "recipe", &get_prefix_for_guild(&message.guild_id().unwrap()));
 
         //Bail out if there's no argument
-        if request == "" {
+        if request.is_empty() {
             if let Err(_) = send_error_embed(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.") {
                 say_into_chat(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
             }
             return Err(String::from("Missing argument, failed."));
         }
+        // Create a list of just keys
+        let recipe_key_list: Vec<&str> = RECIPES.entries().map(|(key, _value)| {
+            key
+        }).collect();
 
         // Find the closest match to what they asked for
-        let (dist, closest_match) = get_closest_match(&request);
+        let (dist, closest_match) = get_closest_match(&recipe_key_list, &request);
 
         // Bail out if the distance is too great
         if dist >= 5 {
@@ -63,16 +66,16 @@ command!(recipe(_context, message) {
         if dist != 0 {
             let result = message.channel_id.send_message(|a| a
                                                          .embed(|b| b
-                                                                .title(&format!("Recipe for {}: (closest, distance {})", closest_match["wiki-name"], dist))
+                                                                .title(&format!("Recipe for {}: (closest, distance {})", RECIPES[closest_match]["wiki-name"], dist))
                                                                 .field(|c| c
                                                                        .name("Crafting time")
-                                                                       .value(&format!("{}", closest_match["energy-required"])))
+                                                                       .value(&format!("{}", RECIPES[closest_match]["energy-required"])))
                                                                 .field(|c| c
                                                                        .name("Inputs")
-                                                                       .value(&serialize_recipe_io(&closest_match["inputs"])))
+                                                                       .value(&serialize_recipe_io(&RECIPES[closest_match]["inputs"])))
                                                                 .field(|c| c
                                                                        .name("Outputs")
-                                                                       .value(&serialize_recipe_io(&closest_match["outputs"])))
+                                                                       .value(&serialize_recipe_io(&RECIPES[closest_match]["outputs"])))
                                                                 .timestamp(message.timestamp.to_rfc3339())
                                                                 .color(Colour::from_rgb(10, 225, 249))
                                                                ));
@@ -83,16 +86,16 @@ command!(recipe(_context, message) {
         } else {
             let result = message.channel_id.send_message(|a| a
                                                          .embed(|b| b
-                                                                .title(&format!("Recipe for {}:", closest_match["wiki-name"]))
+                                                                .title(&format!("Recipe for {}:", RECIPES[closest_match]["wiki-name"]))
                                                                 .field(|c| c
                                                                        .name("Crafting time")
-                                                                       .value(&format!("{}", closest_match["energy-required"])))
+                                                                       .value(&format!("{}", RECIPES[closest_match]["energy-required"])))
                                                                 .field(|c| c
                                                                        .name("Inputs")
-                                                                       .value(&serialize_recipe_io(&closest_match["inputs"])))
+                                                                       .value(&serialize_recipe_io(&RECIPES[closest_match]["inputs"])))
                                                                 .field(|c| c
                                                                        .name("Outputs")
-                                                                       .value(&serialize_recipe_io(&closest_match["outputs"])))
+                                                                       .value(&serialize_recipe_io(&RECIPES[closest_match]["outputs"])))
                                                                 .timestamp(message.timestamp.to_rfc3339())
                                                                 .color(Colour::from_rgb(10, 225, 249))
                                                                ));
@@ -104,29 +107,6 @@ command!(recipe(_context, message) {
 });
 
 // Functions {{{1
-/// Gets the closest key match in RECIPES using levenshtein distance. {{{2
-fn get_closest_match(request: &str) -> (usize, &JsonValue) {
-
-    // Quick exit
-    if RECIPES.has_key(request) {
-        return (0, &RECIPES[request]);
-    }
-    let mut possiblities = BTreeMap::new();
-
-    // Add keys to the treemap corresponding to levenshtein distance
-    for entry in RECIPES.entries() {
-        let (_key, value) = entry;
-        possiblities.insert(
-            levenshtein(request, &format!("{}", value["wiki-name"])),
-            value,
-        );
-    }
-    //return the smallest key, unwrap because there should be a value
-    let (dist, smallest) = possiblities.iter_mut().next().unwrap();
-    return (*dist, smallest);
-
-}
-
 /// Serializes the inputs or outputs object it recieves into a nice list. {{{2
 fn serialize_recipe_io(value: &JsonValue) -> String {
     if value.is_empty() {
@@ -152,22 +132,6 @@ fn serialize_recipe_io(value: &JsonValue) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn closest_match_with_exact() {
-        let request = "beacon";
-        let (dist, closest_match) = get_closest_match(request);
-        assert_eq!(closest_match["wiki-name"], RECIPES["beacon"]["wiki-name"]);
-        assert_eq!(dist, 0);
-    }
-
-    #[test]
-    fn closest_match_with_slightly_incorrect() {
-        let request = "baecon";
-        let (dist, closest_match) = get_closest_match(request);
-        assert_eq!(closest_match["wiki-name"], RECIPES["beacon"]["wiki-name"]);
-        assert_eq!(dist, 3);
-    }
 
     #[test]
     fn can_serialize_recipe_io() {
