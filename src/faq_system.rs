@@ -9,7 +9,6 @@ use std::io::prelude::*;
 
 use common_funcs::*;
 use constants::*;
-use levenshtein::*;
 
 /// Prints out a grand list of all current stored faqs. {{{1
 command!(faqs(_context, message) {
@@ -22,7 +21,6 @@ command!(faqs(_context, message) {
 
     //Send the message with embed
     let result = message.channel_id.send_message(|a| a
-                                                 .content("List of all registered faqs:")
                                                  .embed(|b| b
                                                         .title("FAQs for this server:")
                                                         .description(&embed_content)
@@ -38,15 +36,16 @@ command!(faqs(_context, message) {
 /// Adds a faq to the list of current faqs. {{{1
 /// Can only be used by moderators.
 command!(faq_add(_context, message, _args, name: String, faq: String) {
+    let guild_id = message.guild_id().unwrap();
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help faq-add``` for info on how to format this command.",
-                                        get_prefix_for_guild(&message.guild_id().unwrap())
+                                        get_prefix_for_guild(&guild_id)
                                         ).as_str());
         return Err(String::from("Could not add due to missing quotes or invalid args."));
     }
-    let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+    let mut parsed_json = get_faq_json(&guild_id, &message);
     let name = name.to_lowercase();
 
     if !parsed_json.has_key(name.as_str()) {
@@ -65,11 +64,11 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
         }
 
         // Write it back to the file
-        write_faq_json(parsed_json, &message.guild_id().unwrap());
+        write_faq_json(parsed_json, &guild_id);
 
         // Report success
-        if let Err(_) = send_success_embed(&message, format!("Success, added faq `{}` for concept `{}`.", faq, name).as_str()) {
-            say_into_chat(&message, format!("Success, added faq `{}` for concept `{}`.", faq, name));
+        if let Err(_) = send_success_embed(&message, &format!("Added FAQ `{}`. \nContents are:\n{}", name, faq)) {
+            say_into_chat(&message, &format!("Added FAQ `{}`. \nContents are:\n{}", name, faq));
         }
     } else {
         let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name.
@@ -148,19 +147,21 @@ command!(faq_get(_context, message, _args) {
 
 /// Deletes a stored faq. Administrators only. {{{1
 command!(faq_delete(_context, message) {
-    let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
-    let request = fix_message(message.content_safe(), "faq-delete ", &get_prefix_for_guild(&message.guild_id().unwrap()));
+    let guild_id = message.guild_id().unwrap();
+    let mut parsed_json = get_faq_json(&guild_id, &message);
+    let request = fix_message(message.content_safe(), "faq-delete ", &get_prefix_for_guild(&guild_id));
+    let request = request.replace("\"", ""); //Remove quotes if they used any
 
     // Check if the faq exists
-    if !parsed_json.has_key(request.as_str()) {
-        let _ = send_error_embed(&message, format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request).as_str());
+    if !parsed_json.has_key(&request) {
+        let _ = send_error_embed(&message, &format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request));
     } else { // Key is found
         // Do the deletion
-        let _ = parsed_json.remove(request.as_str());
-        write_faq_json(parsed_json, &message.guild_id().unwrap());
+        let _ = parsed_json.remove(&request);
+        write_faq_json(parsed_json, &guild_id);
 
         // Build message
-        if let Err(_) = send_success_embed(&message, format!("Success, faq for `{}` was deleted.", request).as_str()) {
+        if let Err(_) = send_success_embed(&message, &format!("Success, faq for `{}` was deleted.", request)) {
             say_into_chat(&message, format!("Success, faq for `{}` was deleted.", request));
         }
     }

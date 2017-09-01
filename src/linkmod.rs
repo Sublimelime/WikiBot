@@ -130,7 +130,9 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
                 deps.push_str(&entry_str);
             }
         }
-        if deps_counter > 0 {
+        if deps_counter == 1 {
+            deps.push_str(&format!("...and {} optional dependency.", deps_counter));
+        } else if deps_counter > 1 {
             deps.push_str(&format!("...and {} optional dependencies.", deps_counter));
         }
     }

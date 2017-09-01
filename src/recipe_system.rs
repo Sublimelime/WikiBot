@@ -8,7 +8,6 @@ use std::io::Read;
 
 use common_funcs::*;
 use constants::*;
-use levenshtein::*;
 
 lazy_static! {
     static ref RECIPES: JsonValue = {
