@@ -47,11 +47,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| c.name("Author").value(&modification.author))
                 .field(|c| {
                     c.name("Downloads").value(&format!(
-                        "{} downloads",
-                        modification.download_count
-                    ))
+                            "{} downloads",
+                            modification.download_count
+                            ))
                 })
-                .field(|c| c.name("Source code").value(&modification.source_path))
+            .field(|c| c.name("Source code").value(&modification.source_path))
                 .field(|c| c.name("Homepage").value(&modification.homepage))
                 .field(|c| c.name("Last updated").value(&modification.last_updated))
                 .field(|c| c.name("Dependencies").value(&modification.dependencies))
@@ -60,13 +60,13 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| {
                     c.name("Latest mod version").value(
                         &modification.latest_version,
-                    )
+                        )
                 })
-                .field(|c| {
-                    c.name("Factorio version").value(
-                        &modification.factorio_version,
+            .field(|c| {
+                c.name("Factorio version").value(
+                    &modification.factorio_version,
                     )
-                })
+            })
         })
     });
     if let Err(error) = result {
@@ -118,13 +118,18 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
     let dependencies_json = &json["latest_release"]["info_json"]["dependencies"];
     if !dependencies_json.is_null() && !dependencies_json.is_empty() {
         deps.clear();
+        let mut deps_counter = 0;
         for entry in dependencies_json.members() {
             let entry_str = format!("{}\n", entry);
+            // If the dependency is optional, just count it
             if entry_str.starts_with("?") {
-                deps.push_str(&entry_str.replace("?", "Optional:"));
+                deps_counter += 1;
             } else {
                 deps.push_str(&entry_str);
             }
+        }
+        if deps_counter > 0 {
+            deps.push_str(&format!("...and {} optional dependencies.", deps_counter));
         }
     }
 
@@ -148,7 +153,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
             "https://mods.factorio.com/mods/{}/{}",
             json["owner"],
             json["name"]
-        ).replace(" ", "%20"),
+            ).replace(" ", "%20"),
     }
 }
 
@@ -157,7 +162,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
 fn make_request(request: &String) -> JsonValue {
     let response = reqwest::get(
         format!("https://mods.factorio.com/api/mods?q={}", request).as_str(),
-    );
+        );
 
     if let Ok(mut response) = response {
         if response.status().is_success() {
@@ -206,7 +211,7 @@ fn serialize_search_results(results: &JsonValue) -> String {
             entry["owner"],
             encoded_name,
             entry["owner"]
-        ).as_str();
+            ).as_str();
     }
     if final_string.is_empty() {
         return String::from("No results for current factorio stable version or higher.");
