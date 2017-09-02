@@ -67,6 +67,14 @@ fn main() {
                             c.desc("Prints out info about the bot.")
                             .batch_known_as(vec!["about", "what", "?"])
                             .exec(info))
+                   .command("whois", |c|
+                            c.desc("Prints out info about a user in a server.
+                                   Defaults to the summoner when no user is provided.")
+                            .usage("@user#number")
+                            .example("@Gangsir#2512")
+                            .help_available(false)
+                            .guild_only(true)
+                            .exec(whois))
                    .command("uptime", |c| c
                             .desc("Prints out info about the bot's uptime, and system status. Can only be used by the owner.")
                             .known_as("status")

@@ -1,5 +1,4 @@
-use json;
-use json::JsonValue;
+use json::{self, JsonValue};
 
 use serenity::utils::Colour;
 use serenity::model::{Message, GuildId};
@@ -181,14 +180,15 @@ command!(faq_deleteall(_context, message) {
 /// Changes the value of an existant faq. Administrators only. {{{1
 command!(faq_set(_context, message, _args, name: String, faq: String) {
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
+    let guild_id = message.guild_id().unwrap();
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
         let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help faq-set``` for info on how to format this command.",
-                                        get_prefix_for_guild(&message.guild_id().unwrap())
+                                        get_prefix_for_guild(&guild_id)
                                         ).as_str());
         return Err(String::from("Could not set faq due to invalid args."));
     } else {
-        let mut parsed_json = get_faq_json(&message.guild_id().unwrap(), &message);
+        let mut parsed_json = get_faq_json(&guild_id, &message);
         let name = name.to_lowercase();
 
         if parsed_json.has_key(name.as_str()) {
@@ -208,7 +208,7 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
             }
 
             // Write it back to the file
-            write_faq_json(parsed_json, &message.guild_id().unwrap());
+            write_faq_json(parsed_json, &guild_id);
 
             if let Err(_) = send_success_embed(&message, format!("Success, set faq `{}` for concept `{}`.", faq, name).as_str()) {
                 say_into_chat(&message, format!("Success, set faq `{}` for concept `{}`.", faq, name));

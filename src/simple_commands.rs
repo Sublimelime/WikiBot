@@ -49,7 +49,7 @@ command!(info(_context, message) {
                                                    .field(|c| c.name("Local prefix").value(&server_prefix))
                                                    .timestamp(message.timestamp.to_rfc3339())
                                                    .color(Colour::from_rgb(255, 255, 255))
-                                                   ));
+                                                  ));
 });
 
 /// Prints current system status, including uptime {{{1
@@ -130,6 +130,23 @@ command!(page(_context, message) {
 
     // Post link back into chat
     say_into_chat(&message, final_message);
+});
+
+/// Returns an embed of info about a user. Defaults to {{{1
+/// the current user when a user is not provided.
+command!(whois(_context, message) {
+    let user = message.mentions.get(0).unwrap_or(&message.author);
+    let result = message.channel_id.send_message(|a| a
+                                                 .embed(|b| b
+                                                        .title(&format!("Information for {}:", user.tag()))
+                                                        .image(&user.face())
+                                                        .field(|c| c.name("Created on").value(&format!("{}", user.created_at())))
+                                                        .field(|c| c.name("Is bot").value(&format!("{}", user.bot)))
+                                                       ));
+    if let Err(_) = result {
+        say_into_chat(&message, "Couldn't make an embed here.");
+        return Err(String::from("Failed to make an embed."));
+    }
 });
 
 /// Creates a link to an older FFF. {{{1
