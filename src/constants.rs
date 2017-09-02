@@ -84,7 +84,7 @@ pub fn backup_prefixes() {
 // Tests {{{1
 #[cfg(test)]
 mod tests {
-    use self::serenity::model::GuildId;
+    use serenity::model::GuildId;
     use super::*;
 
     #[test]

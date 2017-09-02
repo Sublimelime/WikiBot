@@ -131,7 +131,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
             }
         }
         if deps_counter == 1 {
-            deps.push_str(&format!("...and {} optional dependency.", deps_counter));
+            deps.push_str("...and 1 optional dependency.");
         } else if deps_counter > 1 {
             deps.push_str(&format!("...and {} optional dependencies.", deps_counter));
         }
@@ -201,12 +201,17 @@ fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
 /// Takes a json array as input, returns a string of the search results serialized. {{{1
 fn serialize_search_results(results: &JsonValue) -> String {
     let mut final_string = String::new();
+    let mut outdated_counter = 0;
 
     for entry in results.members().take(10) {
         let version = format!("{}", entry["latest_release"]["factorio_version"]);
-        let version: f32 = version.parse::<f32>().unwrap_or(0.0);
+        if version.len() < 4 {
+            continue; //Version is not complete
+        }
+        let version: f32 = version[..4].parse::<f32>().unwrap(); //only parse the first 4 chars, so x.xx
         if version < 0.15 {
-            continue; //Filter mods that aren't for 0.15 or higher
+            outdated_counter += 1;
+            continue; //Filter mods that aren't for current stable or higher
         }
 
         let mut encoded_name = format!("{}", entry["name"]);
@@ -221,14 +226,31 @@ fn serialize_search_results(results: &JsonValue) -> String {
         ).as_str();
     }
     if final_string.is_empty() {
-        return String::from("No results for current factorio stable version or higher.");
+        format!(
+            "No results for current factorio stable version or higher.
+                \n{} outdated mods were found.",
+            outdated_counter
+        )
+    } else {
+        format!(
+            "{}\n...and {} outdated mod(s).",
+            final_string,
+            outdated_counter
+        )
     }
-    final_string
 }
 
 /// Links a mod into chat based on args. {{{1
 command!(linkmod(_context, message) {
-    let request = fix_message(message.content_safe(), "linkmod", &get_prefix_for_guild(&message.guild_id().unwrap()));
+    let mut request = String::new();
+    let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
+
+    if message.content_safe().starts_with(format!("{}linkmod", server_prefix).as_str()) {
+        request = fix_message(message.content_safe(), "linkmod", &server_prefix);
+    } else if message.content_safe().starts_with(format!("{}mod", server_prefix).as_str()) {
+        request = fix_message(message.content_safe(), "mod", &server_prefix);
+    }
+
     let _ = message.channel_id.broadcast_typing();
 
     // Check arg validity

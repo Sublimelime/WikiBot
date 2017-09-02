@@ -110,7 +110,8 @@ pub fn get_closest_match<'a>(list: &[&'a str], request: &'a str) -> (usize, &'a 
 // Tests {{{1
 #[cfg(test)]
 mod tests {
-    use super::fix_message;
+    use super::*;
+
     #[test]
     fn can_fix_messages_with_arg() {
         let message = String::from("+faqs get steam");
@@ -127,7 +128,7 @@ mod tests {
     fn closest_match_with_exact() {
         let request = "beacon";
         let list = vec!["wiki", "beacon", "twelve", "blah", "test"];
-        let (dist, closest_match) = get_closest_match(list, request);
+        let (dist, closest_match) = get_closest_match(&list, request);
         assert_eq!(closest_match, "beacon");
         assert_eq!(dist, 0);
     }
@@ -136,9 +137,9 @@ mod tests {
     fn closest_match_with_slightly_incorrect() {
         let request = "baecon";
         let list = vec!["wiki", "beacon", "twelve", "blah", "test"];
-        let (dist, closest_match) = get_closest_match(list, request);
+        let (dist, closest_match) = get_closest_match(&list, request);
         assert_eq!(closest_match, "beacon");
-        assert_eq!(dist, 3);
+        assert_eq!(dist, 2);
     }
 
     #[test]
