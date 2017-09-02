@@ -45,7 +45,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .thumbnail(&modification.thumb)
                 .color(Colour::from_rgb(255, 34, 108))
                 .timestamp(message.timestamp.to_rfc3339())
-                .field(|c| c.name("Author").value(&modification.author))
+                .field(|c| c
+                       .name("Author")
+                       .value(&format!(
+                               "[{a}](https://mods.factorio.com/mods/{a})",
+                               a = modification.author).replace(" ", "%20")))
                 .field(|c| {
                     c.name("Downloads").value(&format!(
                             "{} downloads",
@@ -145,8 +149,8 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
         creation_date: date,
         last_updated: update_date,
         name: format!("{}", json["name"]),
-        author: format!("{}", json["owner"]),
         summary: format!("{}", json["summary"]),
+        author: format!("{}", json["owner"]),
         title: format!("{}", json["title"]),
         latest_version: format!("{}", json["latest_release"]["version"]),
         factorio_version: format!("{}", json["latest_release"]["factorio_version"]),
