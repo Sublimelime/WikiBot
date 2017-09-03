@@ -53,7 +53,7 @@ command!(recipe(_context, message) {
         let (dist, closest_match) = get_closest_match(&recipe_key_list, &request);
 
         // Bail out if the distance is too great
-        if dist >= 5 {
+        if dist >= DISTANCE_SENSITIVITY {
             if let Err(_) = send_error_embed(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?") {
                 say_into_chat(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?");
             }

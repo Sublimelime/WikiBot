@@ -109,9 +109,9 @@ command!(faq_get(_context, message, _args) {
     // Find the closest match to what they asked for
     let (dist, closest_match) = get_closest_match(&faq_key_list, &request);
 
-    if dist > 0 && dist <= 5 {
+    if dist > 0 && dist <= DISTANCE_SENSITIVITY {
         say_into_chat(&message, &format!("I didn't find `{}`, but I did find the next closest FAQ, `{}`:", request, closest_match));
-    } else if dist > 5 {
+    } else if dist > DISTANCE_SENSITIVITY {
         let _ = send_error_embed(&message, &format!("I didn't find `{}`, and no other FAQ was similar enough.", request));
         return Err(String::from("FAQ distance was too great from request, failing out..."));
     }

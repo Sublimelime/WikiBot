@@ -291,8 +291,8 @@ command!(linkmod(_context, message) {
 
                 // Check if the match is close enough, both on the
                 // internal name and the title
-                if levenshtein(&modification.name, &request) <= 3
-                    || levenshtein(&modification.title, &request) <= 3 {
+                if levenshtein(&modification.name, &request) <= DISTANCE_SENSITIVITY
+                    || levenshtein(&modification.title, &request) <= DISTANCE_SENSITIVITY {
                         // Got a match on this entry, so let's send it
                         if !make_mod_embed(modification, &message) {
                             say_into_chat(&message, "Unable to make an embed here.");

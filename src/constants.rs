@@ -14,7 +14,8 @@ lazy_static! {
     pub static ref PREFIXES: Arc<Mutex<HashMap<GuildId, String>>> = Arc::new(Mutex::new(HashMap::new()));
 }
 
-pub static BOT_NAME: &'static str = "WikiBot#3868";
+pub const BOT_NAME: &'static str = "WikiBot#3868";
+pub const DISTANCE_SENSITIVITY: usize = 5;
 
 /// Gets the current set prefix, given an id from a guild. {{{1
 pub fn get_prefix_for_guild(id: &GuildId) -> String {
