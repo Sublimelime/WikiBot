@@ -74,6 +74,26 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                         &modification.factorio_version,
                     )
                 })
+                .field(|c| {
+                    let popularity = if modification.download_count < 100 {
+                        ":asterisk: New mod! :asterisk:"
+                    } else if modification.download_count < 1000 {
+                        ":third_place: Decent popularity. :third_place:"
+                    } else if modification.download_count < 5000 {
+                        ":second_place: Pretty popular! :second_place:"
+                    } else if modification.download_count < 10000 {
+                        ":first_place: Very very popular! :first_place:"
+                    } else if modification.download_count < 100000 {
+                        ":heart: Extremely popular! :heart:"
+                    } else if modification.download_count < 200000 {
+                        ":military_medal: Beloved by the community! :military_medal:"
+                    } else if modification.download_count > 200000 {
+                        ":trophy: Hall of fame! :trophy:"
+                    } else {
+                        "Popularity cannot be determined."
+                    };
+                    c.name("Popularity").value(popularity)
+                })
         })
     });
     if let Err(error) = result {
