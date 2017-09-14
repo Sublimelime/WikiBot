@@ -128,6 +128,7 @@ fn main() {
                                    .desc("When provided with the name of a mod, it will return an embed of all the data on that mod.
                                          \nWhen provided with anything else, preforms a search.
                                          \nFails if that search doesn't return any results.
+                                         \nThe embed also provides popularity evaluation based on the download counts.
                                          \nThis command supports pipe syntax.")
                                    .help_available(true)
                                    .example("Achiever")

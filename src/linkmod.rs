@@ -65,9 +65,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| c.name("Tagged").value(&tag_str))
                 .field(|c| c.name("Created on").value(&modification.creation_date))
                 .field(|c| {
-                    c.name("Latest mod version").value(&format!("{} - [Download]({})",
-                                                                modification.latest_version,
-                                                                modification.download_link))
+                    c.name("Latest mod version").value(&format!(
+                        "{} - [Download]({})",
+                        modification.latest_version,
+                        modification.download_link
+                    ))
                 })
                 .field(|c| {
                     c.name("Factorio version").value(
@@ -167,7 +169,10 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
     }
 
     //Download link
-    let download_link = format!("https://mods.factorio.com{}", json["latest_release"]["download_url"]);
+    let download_link = format!(
+        "https://mods.factorio.com{}",
+        json["latest_release"]["download_url"]
+    );
 
     // Make and return the mod
     Mod {
