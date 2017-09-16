@@ -141,6 +141,23 @@ fn make_modder_embed(modder: Modder, message: &Message) -> bool {
                     .field(|c| c
                            .name("Last updated a mod on:")
                            .value(&modder.last_updated_mod_date))
+                    .field(|c| {
+                        let popularity = match modder.total_downloads {
+                            0...200 => ":asterisk: Learning the ropes! :asterisk:",
+                            201...1000 => ":grin: Rising star! :grin:",
+                            1001...5000 => ":third_place: Gathering a following... :third_place:",
+                            5001...10000 => ":second_place: Excellent mod maker! :second_place:",
+                            10001...50000 => ":first_place: Pretty popular! :first_place:",
+                            50001...80000 => ":military_medal: Beloved by the community! :military_medal:",
+                            80001...100000 => ":medal: Viral! :medal:",
+                            100001...500000 => ":100: Hundreds of thousands of players! :100:",
+                            500001...1000000 => ":eight_pointed_black_star: Approaching the 1 million club! :eight_pointed_black_star:",
+                            1000001...1050000 => ":spaghetti: 1 Million club achieved! :spaghetti:",
+                            _ => ":heart_eyes: Superstar modder! :heart_eyes:"
+                        };
+
+                        c.name("Popularity").value(popularity)
+                    })
                     .color(Colour::from_rgb(255, 34, 108))
                     .timestamp(message.timestamp.to_rfc3339())
             })
@@ -471,9 +488,10 @@ command!(linkmod(_context, message) {
 /// a modder, such as number of mods, most recent mod, total downloads, etc.
 command!(modder(_context, message) {
     let modder_username = fix_message(message.content_safe(), "modder");
+    let _ = message.channel_id().broadcast_typing();
 
     // Check if the username provided is valid
-    if is_valid_modder(&modder_username) {
+    if !modder_username.is_empty() && is_valid_modder(&modder_username) {
         let results = make_request(&modder_username);
         if !results.is_empty() {
             let modder = parse_json_into_modder(&modder_username, &results["results"]);
