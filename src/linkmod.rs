@@ -12,7 +12,7 @@ use constants::*;
 use levenshtein::*;
 
 /// Structs used to hold a bunch of data about a mod/modder, for easy passing {{{1
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Mod {
     pub creation_date: String,
     pub last_updated: String,
@@ -114,11 +114,41 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
 
 /// Creates an embed based on the given modder data. {{{1
 fn make_modder_embed(modder: Modder, message: &Message) -> bool {
-    false
-
+    message.channel_id.send_message(|a| {
+            a.embed(|b| {
+                b.title(&format!("Results for {}:", modder.username))
+                    .field(|c| c
+                           .name("Total downloads:")
+                           .value(&modder.total_downloads.to_string()))
+                    .field(|c| c
+                           .name("Latest mod:")
+                           .value(&format!("[{}](https://mods.factorio.com/mods/{}/{})",
+                                           modder.latest_mod.title,
+                                           modder.username,
+                                           modder.latest_mod.name)))
+                    .field(|c| c
+                           .name("First mod:")
+                           .value(&format!("[{}](https://mods.factorio.com/mods/{}/{})",
+                                           modder.first_mod.title,
+                                           modder.username,
+                                           modder.first_mod.name)))
+                    .field(|c| c
+                           .name("Last updated mod:")
+                           .value(&format!("[{}](https://mods.factorio.com/mods/{}/{})",
+                                           modder.last_updated_mod.title,
+                                           modder.username,
+                                           modder.last_updated_mod.name)))
+                    .field(|c| c
+                           .name("Last updated a mod on:")
+                           .value(&modder.last_updated_mod_date))
+                    .color(Colour::from_rgb(255, 34, 108))
+                    .timestamp(message.timestamp.to_rfc3339())
+            })
+        })
+    .is_ok()
 }
 
-/// Turns a Jsonvalue into a modder. Should be given an array of results.
+/// Turns a Jsonvalue into a modder. Should be given an array of results. {{{1
 fn parse_json_into_modder(username: &str, json: &JsonValue) -> Modder {
     // Turn all entries into Mods
     let mods: Vec<Mod> = json.members().map(|a| parse_json_into_mod(&a)).collect();
@@ -127,11 +157,33 @@ fn parse_json_into_modder(username: &str, json: &JsonValue) -> Modder {
     let downloads_vec: Vec<u64> = mods.iter().map(|a| a.download_count).collect();
     let downloads_summed: u64 = downloads_vec.iter().sum();
 
-    let latest_mod;
-    let last_updated_mod_date;
-    let first_mod;
-    let last_updated_mod;
+    // Find out mods of note --------------
 
+    // Get a sorted list of all mod dates
+    let mut release_dates: Vec<String> = mods.iter().map(|a| a.creation_date.clone()).collect();
+    let mut update_dates: Vec<String> = mods.iter().map(|a| a.last_updated.clone()).collect();
+    release_dates.sort_unstable();
+    update_dates.sort_unstable();
+
+    // Pair the release date with the mod
+    // finding the first release
+    let latest_mod = mods.iter().find(|a| {
+        a.creation_date == release_dates[release_dates.len()-1]
+    }).unwrap().clone();
+
+    // Find first mod
+    let first_mod = mods.iter().find(|a| {
+        a.creation_date == release_dates[0]
+    }).unwrap().clone();
+
+    // Find last updated mod
+    let last_updated_mod = mods.iter().find(|a| {
+        a.last_updated == update_dates[update_dates.len()-1]
+    }).unwrap().clone();
+
+    let last_updated_mod_date = last_updated_mod.last_updated.clone();
+
+    // Return the constructed modder
     Modder {
         username: username.to_owned(),
         total_downloads: downloads_summed,
@@ -424,11 +476,11 @@ command!(modder(_context, message) {
     if is_valid_modder(&modder_username) {
         let results = make_request(&modder_username);
         if !results.is_empty() {
-            let modder = parse_json_into_modder(&modder_username, &results);
+            let modder = parse_json_into_modder(&modder_username, &results["results"]);
             if !make_modder_embed(modder, &message) {
-
-            } else {
                 say_into_chat(&message, "Couldn't make an embed here.");
+            } else {
+                return Ok(());
             }
         } else {
             if let Err(_) = send_error_embed(&message, "Couldn't find any results. The mod portal might be down.") {
