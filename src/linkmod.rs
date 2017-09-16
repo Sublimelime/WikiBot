@@ -11,7 +11,7 @@ use common_funcs::*;
 use constants::*;
 use levenshtein::*;
 
-/// Struct used to hold a bunch of data about a mod, for easy passing {{{1
+/// Structs used to hold a bunch of data about a mod/modder, for easy passing {{{1
 #[derive(Debug)]
 struct Mod {
     pub creation_date: String,
@@ -30,6 +30,16 @@ struct Mod {
     pub title: String, //Pretty title of the mod
     pub tag: Option<String>, //What tag the mod has
     pub download_link: String, //A direct download link to the newest version
+}
+
+#[derive(Debug)]
+struct Modder {
+    pub username: String,
+    pub total_downloads: u64,
+    pub latest_mod: Mod,
+    pub last_updated_mod_date: String,
+    pub first_mod: Mod,
+    pub last_updated_mod: Mod,
 }
 
 /// Creates an embed based on the recieved mod data. {{{1
@@ -100,6 +110,13 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
         return false;
     }
     true
+}
+
+/// Checks if a user is valid given a username, returns boolean. {{{1
+fn is_valid_modder(modder: &str) -> bool {
+
+    false
+
 }
 
 /// Turns a jsonValue into a Mod. Assumes this is a direct mod json entry. {{{1
@@ -253,7 +270,7 @@ fn serialize_search_results(results: &JsonValue) -> String {
         // URLS can't have spaces
         encoded_name = encoded_name.replace(" ", "%20");
         final_string += format!(
-            "[{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
+            "- [{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
             entry["title"],
             entry["owner"],
             encoded_name,
@@ -348,5 +365,21 @@ command!(linkmod(_context, message) {
             say_into_chat(&message, "Couldn't get a response back from the mod portal.");
         }
         return Err(String::from("Failed to get a response back from the mod portal."));
+    }
+});
+
+/// When given a username, returns an embed of information about {{{1
+/// a modder, such as number of mods, most recent mod, total downloads, etc.
+command!(modder(_context, message) {
+    let modder_username = fix_message(message.content_safe(), "modder");
+
+    // Check if the username provided is valid
+    if is_valid_modder(&modder_username) {
+
+
+    } else {
+        if let Err(_) = send_error_embed(&message, "Sorry, no modder by that username was found.") {
+            say_into_chat(&message, "Sorry, no modder by that username was found.");
+        }
     }
 });

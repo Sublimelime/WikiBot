@@ -140,6 +140,15 @@ fn main() {
                                    .known_as("mod")
                                    .bucket("slowly")
                                    .exec(linkmod))
+                          .command("modder", |c| c
+                                   .desc("When provided with the name of a modder, it will return an embed of all the data on that modder.
+                                         \nFails if the username is invalid, or the api cannot be reached.
+                                         \nThe embed also provides popularity evaluation based on the download counts.
+                                         \nThis command supports pipe syntax.")
+                                   .help_available(true)
+                                   .example("Gangsir")
+                                   .bucket("super-slowly")
+                                   .exec(modder))
                           .command("version", |c| c
                                    .desc("Returns the number of the latest version for stable and experimental. Due to expensive operations, can only be used once every 30 seconds.")
                                    .help_available(true)
