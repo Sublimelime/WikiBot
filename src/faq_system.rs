@@ -85,9 +85,9 @@ command!(faq_get(_context, message, _args) {
 
     // Correctly fix message based on which alias they use
     if message.content_safe().starts_with(format!("{}faq", server_prefix).as_str()) {
-        request = fix_message(message.content_safe(), "faq", &server_prefix);
+        request = fix_message(message.content_safe(), "faq");
     } else if message.content_safe().starts_with(format!("{}faw", server_prefix).as_str()) {
-        request = fix_message(message.content_safe(), "faw", &server_prefix);
+        request = fix_message(message.content_safe(), "faw");
     }
 
     if request.is_empty() {
@@ -148,7 +148,7 @@ command!(faq_get(_context, message, _args) {
 command!(faq_delete(_context, message) {
     let guild_id = message.guild_id().unwrap();
     let mut parsed_json = get_faq_json(&guild_id, &message);
-    let request = fix_message(message.content_safe(), "faq-delete ", &get_prefix_for_guild(&guild_id));
+    let request = fix_message(message.content_safe(), "faq-delete");
     let request = request.replace("\"", ""); //Remove quotes if they used any
 
     // Check if the faq exists

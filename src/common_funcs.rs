@@ -66,7 +66,7 @@ where
 
 /// Corrects a message, removing the command from it, and truncating {{{1
 /// everything after ||
-pub fn fix_message(message: String, command: &str, prefix: &str) -> String {
+pub fn fix_message(message: String, command: &str) -> String {
     let mut modified_content = message;
 
     // Truncate message to ||
@@ -74,16 +74,14 @@ pub fn fix_message(message: String, command: &str, prefix: &str) -> String {
         modified_content.truncate(index as usize);
     }
 
-    // Remove the command from it, and prefix
-    modified_content = modified_content.replace(command, "").replace(prefix, "");
+    // Remove the command from it, and prefix, which is always the first char
+    modified_content = modified_content.replace(command, "")[1..].to_owned();
 
     // Remove the bot's name, if used via mention
     modified_content = modified_content.replace(format!("@{}", BOT_NAME).as_str(), "");
 
-    //Trim spaces off
-    modified_content = modified_content.trim().to_owned();
-
-    modified_content
+    //Trim spaces off, and return
+    modified_content.trim().to_owned()
 }
 
 
@@ -115,13 +113,13 @@ mod tests {
     #[test]
     fn can_fix_messages_with_arg() {
         let message = String::from("+faqs get steam");
-        assert_eq!("steam", fix_message(message, "faqs get ", "+"))
+        assert_eq!("steam", fix_message(message, "faqs get"));
     }
 
     #[test]
     fn can_fix_messages_without_arg() {
         let message = String::from("+faqs get");
-        assert_eq!("", fix_message(message, "faqs get", "+"))
+        assert_eq!("", fix_message(message, "faqs get"));
     }
 
     #[test]
@@ -145,12 +143,12 @@ mod tests {
     #[test]
     fn can_fix_messages_with_pipes() {
         let message = String::from("+faqs get steam || Hello, I'm talking after this.");
-        assert_eq!("steam", fix_message(message, "faqs get", "+"))
+        assert_eq!("steam", fix_message(message, "faqs get"));
     }
 
     #[test]
     fn can_fix_messages_without_arg_and_with_pipes() {
         let message = String::from("+faqs get || Comprehensive test coverage!");
-        assert_eq!("", fix_message(message, "faqs get", "+"))
+        assert_eq!("", fix_message(message, "faqs get"));
     }
 }

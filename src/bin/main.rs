@@ -117,7 +117,12 @@ fn main() {
                                    .example("iron plate")
                                    .help_available(true)
                                    .exec(page))
-
+                          .command("api", |c|
+                                   c.desc("Takes a search string, returns a search of the modding api for that string.
+                                          \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
+                                   .example("player")
+                                   .help_available(true)
+                                   .exec(search_api))
                           .command("fff", |c| c
                                    .desc("Returns a link to the newest FFF. Due to expensive operations, can only be used once every 30 seconds.")
                                    .help_available(true)

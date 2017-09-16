@@ -35,7 +35,7 @@ command!(recipe(_context, message) {
         say_into_chat(&message, "Sorry, I couldn't get a list of recipes in the game correctly. This command isn't going to work.");
     } else {
         let _ = message.channel_id.broadcast_typing();
-        let request = fix_message(message.content_safe(), "recipe", &get_prefix_for_guild(&message.guild_id().unwrap()));
+        let request = fix_message(message.content_safe(), "recipe");
 
         //Bail out if there's no argument
         if request.is_empty() {

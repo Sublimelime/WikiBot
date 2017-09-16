@@ -27,6 +27,6 @@ pub mod commands {
     pub use linkmod::linkmod;
     pub use prefix_control::register_prefix;
     pub use recipe_system::recipe;
-    pub use simple_commands::{ping, stop_process, info, whois, uptime, host, page, fff_old};
+    pub use simple_commands::{ping, stop_process, search_api, info, whois, uptime, host, page, fff_old};
     pub use web_requesting::{fff, version};
 }

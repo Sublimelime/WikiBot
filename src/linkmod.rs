@@ -284,9 +284,9 @@ command!(linkmod(_context, message) {
     let server_prefix = get_prefix_for_guild(&message.guild_id().unwrap());
 
     if message.content_safe().starts_with(format!("{}linkmod", server_prefix).as_str()) {
-        request = fix_message(message.content_safe(), "linkmod", &server_prefix);
+        request = fix_message(message.content_safe(), "linkmod");
     } else if message.content_safe().starts_with(format!("{}mod", server_prefix).as_str()) {
-        request = fix_message(message.content_safe(), "mod", &server_prefix);
+        request = fix_message(message.content_safe(), "mod");
     }
 
     let _ = message.channel_id.broadcast_typing();

@@ -18,6 +18,32 @@ command!(ping(_context, message) {
     reply_into_chat(&message, reply);
 });
 
+/// Takes a search, returns a link to a search of the factorio {{{1
+/// modding api.
+command!(search_api(_context, message) {
+    let mut final_message = String::from("https://duckduckgo.com/?q=site%3Alua-api.factorio.com%2Flatest%2F+");
+
+    // Remove command from message content, and code-ify it
+    let mut modified_content = fix_message(message.content_safe(), "api");
+
+    // They should've provided an argument
+    if modified_content.is_empty() {
+        if let Err(_) = send_error_embed(&message, "Expected a search string.") {
+            reply_into_chat(&message, "Expected a search string.");
+        }
+        return Err(String::from("User did not provide search string."));
+    }
+
+    // Fix the symbols in the url
+    let modified_content_fixed = modified_content.replace("+", "%20").replace(" ", "+");
+
+    final_message.push_str(modified_content_fixed.as_str()); //add the specified page to the end
+
+    if let Err(_) = send_success_embed(&message, &format!("Your results for [{}]({}).", modified_content, final_message)) {
+        reply_into_chat(&message, format!("Couldn't send the embed, so here's the results:\n{}", final_message));
+    }
+});
+
 /// Stops the bot, shutting down the process. {{{1
 command!(stop_process(_context, message) {
     reply_into_chat(&message, "Stopping bot. Goodbye.");
@@ -119,9 +145,16 @@ command!(page(_context, message) {
     // Remove command from message content, and code-ify it
     let mut modified_content = String::new();
     if message.content_safe().starts_with(format!("{}page", server_prefix).as_str()) {
-        modified_content = fix_message(message.content_safe(), "page ", &server_prefix);
+        modified_content = fix_message(message.content_safe(), "page");
     } else if message.content_safe().starts_with(format!("{}link", server_prefix).as_str()) {
-        modified_content = fix_message(message.content_safe(), "link ", &server_prefix);
+        modified_content = fix_message(message.content_safe(), "link");
+    }
+
+    if modified_content.is_empty() {
+        if let Err(_) = send_error_embed(&message, "Expected a page to link.") {
+            reply_into_chat(&message, "Expected a page to link.");
+        }
+        return Err(String::from("User did not provide page to link."));
     }
 
     modified_content = modified_content.replace(" ", "_");
@@ -157,9 +190,9 @@ command!(fff_old(_context, message) {
     let mut modified_content = String::new();
 
     if message.content_safe().starts_with(format!("{}fff-old", server_prefix).as_str()) {
-        modified_content = fix_message(message.content_safe(), "fff-old ", &server_prefix);
+        modified_content = fix_message(message.content_safe(), "fff-old");
     } else if message.content_safe().starts_with(format!("{}blog-old", server_prefix).as_str()) {
-        modified_content = fix_message(message.content_safe(), "blog-old ", &server_prefix);
+        modified_content = fix_message(message.content_safe(), "blog-old");
     }
 
     final_message.push_str(modified_content.as_str());
