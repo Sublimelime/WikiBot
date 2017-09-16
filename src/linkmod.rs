@@ -47,7 +47,7 @@ struct Modder {
 fn make_mod_embed(modification: Mod, message: &Message) -> bool {
     let tag_str = modification.tag.as_ref().map(String::as_str).unwrap_or(
         "Not tagged.",
-        );
+    );
 
     let result = message.channel_id.send_message(|a| {
         a.embed(|b| {
@@ -58,17 +58,17 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .timestamp(message.timestamp.to_rfc3339())
                 .field(|c| {
                     c.name("Author").value(&format!(
-                            "[{a}](https://mods.factorio.com/mods/{a})",
-                            a = modification.author
-                            ).replace(" ", "%20"))
+                        "[{a}](https://mods.factorio.com/mods/{a})",
+                        a = modification.author
+                    ).replace(" ", "%20"))
                 })
-            .field(|c| {
-                c.name("Downloads").value(&format!(
+                .field(|c| {
+                    c.name("Downloads").value(&format!(
                         "{} downloads",
                         modification.download_count
-                        ))
-            })
-            .field(|c| c.name("Source code").value(&modification.source_path))
+                    ))
+                })
+                .field(|c| c.name("Source code").value(&modification.source_path))
                 .field(|c| c.name("Homepage").value(&modification.homepage))
                 .field(|c| c.name("Last updated").value(&modification.last_updated))
                 .field(|c| c.name("Dependencies").value(&modification.dependencies))
@@ -76,33 +76,33 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                 .field(|c| c.name("Created on").value(&modification.creation_date))
                 .field(|c| {
                     c.name("Latest mod version").value(&format!(
-                            "{} - [Download]({})",
-                            modification.latest_version,
-                            modification.download_link
-                            ))
+                        "{} - [Download]({})",
+                        modification.latest_version,
+                        modification.download_link
+                    ))
                 })
-            .field(|c| {
-                c.name("Factorio version").value(
-                    &modification.factorio_version,
+                .field(|c| {
+                    c.name("Factorio version").value(
+                        &modification.factorio_version,
                     )
-            })
-            .field(|c| {
-                let popularity = match modification.download_count {
-                    0...50 => ":asterisk: New mod! :asterisk:",
-                    50...200 => ":seedling: Gathering a following... :seedling:",
-                    201...1000 => ":third_place: A decent amount of downloads. :third_place:",
-                    1001...2000 => ":second_place: Pretty popular! :second_place:",
-                    2001...5000 => ":first_place: Very very popular! :first_place:",
-                    5001...10000 => ":heart: Extremely popular! :heart:",
-                    100001...105000 => {
-                        ":military_medal: Beloved by the community! :military_medal:"
-                    }
-                    105001...200000 => ":medal: Nearing the Hall of Fame! :medal:",
-                    // Anything beyond that
-                    _ => ":trophy: Hall of Fame! :trophy:",
-                };
-                c.name("Popularity").value(popularity)
-            })
+                })
+                .field(|c| {
+                    let popularity = match modification.download_count {
+                        0...50 => ":asterisk: New mod! :asterisk:",
+                        50...200 => ":seedling: Gathering a following... :seedling:",
+                        201...1000 => ":third_place: A decent amount of downloads. :third_place:",
+                        1001...2000 => ":second_place: Pretty popular! :second_place:",
+                        2001...5000 => ":first_place: Very very popular! :first_place:",
+                        5001...10000 => ":heart: Extremely popular! :heart:",
+                        100001...105000 => {
+                            ":military_medal: Beloved by the community! :military_medal:"
+                        }
+                        105001...200000 => ":medal: Nearing the Hall of Fame! :medal:",
+                        // Anything beyond that
+                        _ => ":trophy: Hall of Fame! :trophy:",
+                    };
+                    c.name("Popularity").value(popularity)
+                })
         })
     });
     if let Err(error) = result {
@@ -184,19 +184,24 @@ fn parse_json_into_modder(username: &str, json: &JsonValue) -> Modder {
 
     // Pair the release date with the mod
     // finding the first release
-    let latest_mod = mods.iter().find(|a| {
-        a.creation_date == release_dates[release_dates.len()-1]
-    }).unwrap().clone();
+    let latest_mod = mods.iter()
+        .find(|a| {
+            a.creation_date == release_dates[release_dates.len() - 1]
+        })
+        .unwrap()
+        .clone();
 
     // Find first mod
-    let first_mod = mods.iter().find(|a| {
-        a.creation_date == release_dates[0]
-    }).unwrap().clone();
+    let first_mod = mods.iter()
+        .find(|a| a.creation_date == release_dates[0])
+        .unwrap()
+        .clone();
 
     // Find last updated mod
-    let last_updated_mod = mods.iter().find(|a| {
-        a.last_updated == update_dates[update_dates.len()-1]
-    }).unwrap().clone();
+    let last_updated_mod = mods.iter()
+        .find(|a| a.last_updated == update_dates[update_dates.len() - 1])
+        .unwrap()
+        .clone();
 
     let last_updated_mod_date = last_updated_mod.last_updated.clone();
 
@@ -216,7 +221,7 @@ fn is_valid_modder(modder: &str) -> bool {
 
     let response = reqwest::get(
         format!("https://mods.factorio.com/api/users/{}", modder).as_str(),
-        );
+    );
 
     if let Ok(mut response) = response {
         if response.status().is_success() {
@@ -302,7 +307,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
     let download_link = format!(
         "https://mods.factorio.com{}",
         json["latest_release"]["download_url"]
-        );
+    );
 
     // Make and return the mod
     Mod {
@@ -325,7 +330,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
             "https://mods.factorio.com/mods/{}/{}",
             json["owner"],
             json["name"]
-            ).replace(" ", "%20"),
+        ).replace(" ", "%20"),
     }
 }
 
@@ -334,7 +339,7 @@ fn parse_json_into_mod(json: &JsonValue) -> Mod {
 fn make_request(request: &String) -> JsonValue {
     let response = reqwest::get(
         format!("https://mods.factorio.com/api/mods?q={}", request).as_str(),
-        );
+    );
 
     if let Ok(mut response) = response {
         if response.status().is_success() {
@@ -363,7 +368,7 @@ fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
                     .timestamp(message.timestamp.to_rfc3339())
             })
         })
-    .is_ok()
+        .is_ok()
 }
 
 /// Takes a json array as input, returns a string of the search results serialized. {{{1
@@ -391,20 +396,20 @@ fn serialize_search_results(results: &JsonValue) -> String {
             entry["owner"],
             encoded_name,
             entry["owner"]
-            ).as_str();
+        ).as_str();
     }
     if final_string.is_empty() {
         format!(
             "No results for current factorio stable version or higher.
                 \n{} outdated mods were found.",
-                outdated_counter
-               )
+            outdated_counter
+        )
     } else {
         format!(
             "{}\n...and {} outdated mod(s).",
             final_string,
             outdated_counter
-            )
+        )
     }
 }
 
