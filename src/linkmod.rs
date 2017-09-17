@@ -106,6 +106,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                     };
                     c.name("Popularity").value(popularity)
                 })
+                .footer(|c| {
+                    c.text(
+                        "For info on the author of this mod, use the modder command.",
+                    )
+                })
         })
     });
     if let Err(error) = result {
