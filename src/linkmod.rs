@@ -2,6 +2,8 @@ use json::{self, JsonValue};
 
 use reqwest;
 
+use chrono::prelude::*;
+
 use serenity::model::Message;
 use serenity::utils::Colour;
 
@@ -115,13 +117,29 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
 
 /// Creates an embed based on the given modder data. {{{1
 fn make_modder_embed(modder: Modder, message: &Message) -> bool {
+    // Figure out the time that the modder has been inactive
+    let last_updated_date = NaiveDate::parse_from_str(&modder.last_updated_mod_date, "%Y-%m-%d").unwrap();
+    let today = Utc::today().naive_utc(); //Get today's date
+    let time_inactive = today.signed_duration_since(last_updated_date); //Get duration since
+
+    //Break apart duration into an amount of weeks and days
+    let time_inactive_string = if time_inactive.num_days() < 7 {
+        format!("{} days", time_inactive.num_days())
+    } else {
+        let weeks = time_inactive.num_days() / 7;
+        // The remainder is the amount of days, after weeks have been removed
+        let days = time_inactive.num_days() % 7;
+
+        format!("{} weeks, {} days", weeks, days)
+    };
+
+    // Send the embed
     message.channel_id.send_message(|a| {
         a.embed(|b| {
             b.author(|c| c
                      .name(&format!("Results for {}:", modder.username))
                      .url(&format!("https://mods.factorio.com/mods/{}", modder.username)))
-                .description("For information on any of the mods below,
-                                 use the `linkmod` command, or click the links.")
+                .description("For information on any of the mods below, use the `linkmod` command, or click the links.")
                 .field(|c| c
                        .name("Total downloads:")
                        .value(&modder.total_downloads.to_string()))
@@ -150,8 +168,8 @@ fn make_modder_embed(modder: Modder, message: &Message) -> bool {
                        modder.username,
                        modder.most_popular_mod.name.replace(" ", "%20"))))
                 .field(|c| c
-                       .name("Last updated a mod on:")
-                       .value(&modder.last_updated_mod_date))
+                       .name("Inactive for:")
+                       .value(&time_inactive_string))
                 .field(|c| {
                     let popularity = match modder.total_downloads {
                         0...200 => ":asterisk: Learning the ropes! :asterisk:",
@@ -180,7 +198,10 @@ fn make_modder_embed(modder: Modder, message: &Message) -> bool {
 /// Turns a Jsonvalue into a modder. Should be given an array of results. {{{1
 fn parse_json_into_modder(username: &str, json: &JsonValue) -> Modder {
     // Turn all entries into Mods
-    let mods: Vec<Mod> = json.members().map(|a| parse_json_into_mod(&a)).collect();
+    let mut mods: Vec<Mod> = json.members().map(|a| parse_json_into_mod(&a)).collect();
+
+    // Keep only mods that are owned by the username
+    mods.retain(|a| a.author == username);
 
     // sum downloads count, and find most popular mod
     let mut downloads_vec: Vec<u64> = mods.iter().map(|a| a.download_count).collect();
