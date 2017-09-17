@@ -118,7 +118,8 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
 /// Creates an embed based on the given modder data. {{{1
 fn make_modder_embed(modder: Modder, message: &Message) -> bool {
     // Figure out the time that the modder has been inactive
-    let last_updated_date = NaiveDate::parse_from_str(&modder.last_updated_mod_date, "%Y-%m-%d").unwrap();
+    let last_updated_date = NaiveDate::parse_from_str(&modder.last_updated_mod_date, "%Y-%m-%d")
+        .unwrap();
     let today = Utc::today().naive_utc(); //Get today's date
     let time_inactive = today.signed_duration_since(last_updated_date); //Get duration since
 
