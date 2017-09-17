@@ -142,9 +142,10 @@ fn main() {
                                    .exec(linkmod))
                           .command("modder", |c| c
                                    .desc("When provided with the name of a modder, it will return an embed of all the data on that modder.
-                                         \nFails if the username is invalid, or the api cannot be reached.
+                                         \nFails if the username is invalid, has not made any mods, or the api cannot be reached.
+                                         \nNote that the name of the modder must be spelled and capitalized correctly.
                                          \nThe embed also provides popularity evaluation based on the download counts.
-                                         \nThis command supports pipe syntax.")
+                                         \nThis command also supports pipe syntax.")
                                    .help_available(true)
                                    .example("Gangsir")
                                    .bucket("super-slowly")

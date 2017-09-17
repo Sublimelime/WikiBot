@@ -97,9 +97,7 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                         1001...2000 => ":second_place: Pretty popular! :second_place:",
                         2001...5000 => ":first_place: Very very popular! :first_place:",
                         5001...10000 => ":heart: Extremely popular! :heart:",
-                        100001...105000 => {
-                            ":military_medal: Beloved by the community! :military_medal:"
-                        }
+                        100001...105000 => ":military_medal: Beloved by the community! :military_medal:",
                         105001...200000 => ":medal: Nearing the Hall of Fame! :medal:",
                         // Anything beyond that
                         _ => ":trophy: Hall of Fame! :trophy:",
