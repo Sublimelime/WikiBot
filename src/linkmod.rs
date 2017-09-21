@@ -520,11 +520,11 @@ command!(linkmod(_context, message) {
             }
             return Ok(());
         } else {
-            send_error_embed_or_say(&message, "There are no results for that query.");
+            send_error_embed_or_say(&message, "The mod portal didn't return any matches for that query. :frowning:");
             return Err(String::from("Didn't find any results for the request."));
         }
     } else {
-        send_error_embed_or_say(&message, "Couldn't get a response back from the mod portal.");
+        send_error_embed_or_say(&message, "Couldn't get a response back from the mod portal. :thinking:");
         return Err(String::from("Failed to get a response back from the mod portal."));
     }
 });
