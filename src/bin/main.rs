@@ -47,10 +47,14 @@ fn main() {
 
             .configure(|c|
                        c.dynamic_prefix(|_ctx, message| {
-                           let guild_id = message.guild_id().unwrap(); //Get guild id of the current message
-
-                           let prefixes = constants::PREFIXES.lock().unwrap();
-                           prefixes.get(&guild_id).cloned()
+                           //Get guild id of the current message
+                           if let Some(guild_id) = message.guild_id() {
+                               let prefixes = constants::PREFIXES.lock().unwrap();
+                               return prefixes.get(&guild_id).cloned();
+                           } else {
+                               log_info!("Guild ID was not in the cache.");
+                               None
+                           }
                        })
                        .ignore_bots(true) //Ignore other bots
                        .ignore_webhooks(true)
