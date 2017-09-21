@@ -39,9 +39,7 @@ command!(recipe(_context, message) {
 
         //Bail out if there's no argument
         if request.is_empty() {
-            if let Err(_) = send_error_embed(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.") {
-                say_into_chat(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
-            }
+            send_error_embed_or_say(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
             return Err(String::from("Missing argument, failed."));
         }
         // Create a list of just keys
@@ -54,10 +52,8 @@ command!(recipe(_context, message) {
 
         // Bail out if the distance is too great
         if dist >= DISTANCE_SENSITIVITY {
-            if let Err(_) = send_error_embed(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?") {
-                say_into_chat(&message, "Sorry, I couldn't find any recipe for that request. Does the object you're asking for go by any other name?");
-            }
-
+            send_error_embed_or_say(&message, "Sorry, I couldn't find any recipe for that request.
+                                    Does the object you're asking for go by any other name?");
             return Err(String::from("Missing recipe, failed."));
         }
 

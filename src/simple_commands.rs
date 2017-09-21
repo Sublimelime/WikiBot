@@ -28,9 +28,7 @@ command!(search_api(_context, message) {
 
     // They should've provided an argument
     if modified_content.is_empty() {
-        if let Err(_) = send_error_embed(&message, "Expected a search string.") {
-            reply_into_chat(&message, "Expected a search string.");
-        }
+        send_error_embed_or_say(&message, "Expected a search string.");
         return Err(String::from("User did not provide search string."));
     }
 
@@ -151,9 +149,7 @@ command!(page(_context, message) {
     }
 
     if modified_content.is_empty() {
-        if let Err(_) = send_error_embed(&message, "Expected a page to link.") {
-            reply_into_chat(&message, "Expected a page to link.");
-        }
+        send_error_embed_or_say(&message, "Expected a page to link.");
         return Err(String::from("User did not provide page to link."));
     }
 

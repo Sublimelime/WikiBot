@@ -34,6 +34,13 @@ pub fn send_success_embed(message: &Message, reason: &str) -> serenity::Result<M
     })
 }
 
+/// Sends an error embed, and if that fails, says the message. {{{1
+pub fn send_error_embed_or_say(message: &Message, words: &str) {
+    if let Err(_) = send_error_embed(&message, words) {
+        say_into_chat(&message, words);
+    }
+}
+
 
 /// Replies a message into chat, pinging the original summoner. {{{1
 pub fn reply_into_chat<T>(message: &Message, speech: T)

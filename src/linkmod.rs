@@ -139,7 +139,7 @@ fn make_modder_embed(modder: Modder, message: &Message) -> bool {
         format!("{} weeks, {} days", weeks, days)
     };
 
-    // Send the embed
+    // Send the embed {{{2
     message.channel_id.send_message(|a| {
         a.embed(|b| {
             b.author(|c| c
@@ -405,7 +405,6 @@ fn make_request(request: &String) -> JsonValue {
 
 /// Makes an embed of search results. Takes a json array, and returns true {{{1
 /// if able to make an embed of all the results
-
 fn make_search_results_embed(message: &Message, results: JsonValue) -> bool {
     message
         .channel_id
@@ -440,11 +439,10 @@ fn serialize_search_results(results: &JsonValue) -> String {
         // URLS can't have spaces
         encoded_name = encoded_name.replace(" ", "%20");
         final_string += format!(
-            "- [{}](https://mods.factorio.com/mods/{}/{}) by {}\n",
-            entry["title"],
-            entry["owner"],
-            encoded_name,
-            entry["owner"]
+            "- [{a}](https://mods.factorio.com/mods/{b}/{c}) by {b}\n",
+            a = entry["title"],
+            b = entry["owner"],
+            c = encoded_name,
         ).as_str();
     }
     if final_string.is_empty() {
@@ -477,9 +475,7 @@ command!(linkmod(_context, message) {
 
     // Check arg validity
     if request.is_empty() {
-        if let Err(_) = send_error_embed(&message, "Expected a mod to search for.") {
-            say_into_chat(&message, "Expected a mod to search for.");
-        }
+        send_error_embed_or_say(&message, "Expected a mod to search for.");
         return Err(String::from("User didn't provide an argument."));
     }
 
@@ -524,15 +520,11 @@ command!(linkmod(_context, message) {
             }
             return Ok(());
         } else {
-            if let Err(_) = send_error_embed(&message, "There are no results for that query.") {
-                say_into_chat(&message, "There are no results for that query.");
-            }
+            send_error_embed_or_say(&message, "There are no results for that query.");
             return Err(String::from("Didn't find any results for the request."));
         }
     } else {
-        if let Err(_) = send_error_embed(&message, "Couldn't get a response back from the mod portal.") {
-            say_into_chat(&message, "Couldn't get a response back from the mod portal.");
-        }
+        send_error_embed_or_say(&message, "Couldn't get a response back from the mod portal.");
         return Err(String::from("Failed to get a response back from the mod portal."));
     }
 });
@@ -557,21 +549,15 @@ command!(modder(_context, message) {
                     return Ok(());
                 }
             } else {
-                if let Err(_) = send_error_embed(&message, "This user has not made any mods.") {
-                    say_into_chat(&message, "This user has not made any mods.");
-                }
+                send_error_embed_or_say(&message, "This user has not made any mods.");
                 return Err(String::from("User hasn't made any mods."));
             }
         } else {
-            if let Err(_) = send_error_embed(&message, "Couldn't find any results. The mod portal might be down.") {
-                say_into_chat(&message, "Couldn't find any results. The mod portal might be down.");
-            }
+            send_error_embed_or_say(&message, "Couldn't find any results. The mod portal might be down.");
             return Err(String::from("Couldn't reach the mod portal."));
         }
     } else {
-        if let Err(_) = send_error_embed(&message, "Sorry, no modder by that username was found.") {
-            say_into_chat(&message, "Sorry, no modder by that username was found.");
-        }
+        send_error_embed_or_say(&message, "Sorry, no modder by that username was found.");
         return Err(String::from("Invalid username."));
     }
 });

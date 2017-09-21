@@ -27,7 +27,7 @@ command!(faqs(_context, message) {
                                                         .timestamp(message.timestamp.to_rfc3339())
                                                        ));
     if let Err(error) = result {
-        let _ = send_error_embed(&message, "Failed to get faq list. Either something went wrong, or no faqs are defined.");
+        send_error_embed_or_say(&message, "Failed to get faq list. Either something went wrong, or no faqs are defined.");
         return Err(format!("Got error sending list of faqs, error is: {:?}, parsed json is {}", error, parsed_json.dump()));
     }
 });
@@ -38,10 +38,9 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
     let guild_id = message.guild_id().unwrap();
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
-        let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
+        send_error_embed_or_say(&message, &format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help faq-add``` for info on how to format this command.",
-                                        get_prefix_for_guild(&guild_id)
-                                        ).as_str());
+                                        get_prefix_for_guild(&guild_id)));
         return Err(String::from("Could not add due to missing quotes or invalid args."));
     }
     let mut parsed_json = get_faq_json(&guild_id, &message);
@@ -70,7 +69,7 @@ command!(faq_add(_context, message, _args, name: String, faq: String) {
             say_into_chat(&message, &format!("Added FAQ `{}`. \nContents are:\n{}", name, faq));
         }
     } else {
-        let _ = send_error_embed(&message, "Cannot add, dictionary already contains an entry for that name.
+        send_error_embed_or_say(&message, "Cannot add, dictionary already contains an entry for that name.
                                  Try using ```faq-set``` instead, or removing it.");
         return Err(String::from("Could not add due to an already existing key for provided faq."));
     }
@@ -94,7 +93,7 @@ command!(faq_get(_context, message, _args) {
         // Call the other command's function, since the user is looking for a list
         return faqs(_context, message, _args);
     } else if parsed_json.is_empty() {
-        let _ = send_error_embed(&message, "Sorry, no FAQs configured.");
+        send_error_embed_or_say(&message, "Sorry, no FAQs configured.");
         return Err(String::from("No FAQs configured, cannot pick one."));
     }
 
@@ -112,7 +111,7 @@ command!(faq_get(_context, message, _args) {
     if dist > 0 && dist <= DISTANCE_SENSITIVITY {
         say_into_chat(&message, &format!("I didn't find `{}`, but I did find the next closest FAQ, `{}`:", request, closest_match));
     } else if dist > DISTANCE_SENSITIVITY {
-        let _ = send_error_embed(&message, &format!("I didn't find `{}`, and no other FAQ was similar enough.", request));
+        send_error_embed_or_say(&message, &format!("I didn't find `{}`, and no other FAQ was similar enough.", request));
         return Err(String::from("FAQ distance was too great from request, failing out..."));
     }
 
@@ -153,7 +152,7 @@ command!(faq_delete(_context, message) {
 
     // Check if the faq exists
     if !parsed_json.has_key(&request) {
-        let _ = send_error_embed(&message, &format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request));
+        send_error_embed_or_say(&message, &format!("Sorry, I didn't find anything for `{}`. It might've been already deleted.", request));
     } else { // Key is found
         // Do the deletion
         let _ = parsed_json.remove(&request);
@@ -182,7 +181,7 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     let guild_id = message.guild_id().unwrap();
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
-        let _ = send_error_embed(&message, format!("I'm sorry, I didn't understand your input correctly.
+        send_error_embed_or_say(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help faq-set``` for info on how to format this command.",
                                         get_prefix_for_guild(&guild_id)
                                         ).as_str());
@@ -214,7 +213,7 @@ command!(faq_set(_context, message, _args, name: String, faq: String) {
                 say_into_chat(&message, format!("Success, set faq `{}` for concept `{}`.", faq, name));
             }
         } else {
-            let _ = send_error_embed(&message, "Cannot set, key not found in dictionary. Try using ```faq add``` instead.");
+            send_error_embed_or_say(&message, "Cannot set, key not found in dictionary. Try using ```faq add``` instead.");
             return Err(String::from("Could not set faq due to missing key."));
         }
     }

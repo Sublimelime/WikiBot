@@ -53,19 +53,19 @@ command!(fff(_context, msg) {
                         }
                         return Ok(());
                     } else {
-                        let _ = send_error_embed(&message, fail_message_rss);
+                        send_error_embed_or_say(&message, fail_message_rss);
                         return Err(String::from(fail_message_rss));
                     }
                 } else {
-                    let _ = send_error_embed(&message, fail_message_rss);
+                    send_error_embed_or_say(&message, fail_message_rss);
                     return Err(String::from(fail_message_rss));
                 }
             } else {
-                let _ = send_error_embed(&message, fail_message);
+                send_error_embed_or_say(&message, fail_message);
                 return Err(String::from(fail_message));
             }
         } else {
-            let _ = send_error_embed(&message, fail_message);
+            send_error_embed_or_say(&message, fail_message);
             return Err(String::from(fail_message));
         }
     });
