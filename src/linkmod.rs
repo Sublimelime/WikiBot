@@ -96,9 +96,11 @@ fn make_mod_embed(modification: Mod, message: &Message) -> bool {
                         201...1000 => ":third_place: A decent amount of downloads. :third_place:",
                         1001...2000 => ":second_place: Pretty popular! :second_place:",
                         2001...5000 => ":first_place: Very very popular! :first_place:",
-                        5001...10000 => ":heart: Extremely popular! :heart:",
-                        100001...105000 => ":military_medal: Beloved by the community! :military_medal:",
-                        105001...200000 => ":medal: Nearing the Hall of Fame! :medal:",
+                        5001...10_000 => ":heart: Extremely popular! :heart:",
+                        10_001...15_000 => {
+                            ":military_medal: Beloved by the community! :military_medal:"
+                        }
+                        15_001...20_000 => ":medal: Nearing the Hall of Fame! :medal:",
                         // Anything beyond that
                         _ => ":trophy: Hall of Fame! :trophy:",
                     };
@@ -503,8 +505,8 @@ command!(linkmod(_context, message) {
 
                 // Check if the match is close enough, both on the
                 // internal name and the title
-                if levenshtein(&modification.name, &request) <= DISTANCE_SENSITIVITY
-                    || levenshtein(&modification.title, &request) <= DISTANCE_SENSITIVITY {
+                if levenshtein_insensitive(&modification.name, &request) <= DISTANCE_SENSITIVITY
+                    || levenshtein_insensitive(&modification.title, &request) <= DISTANCE_SENSITIVITY {
                         // Got a match on this entry, so let's send it
                         if !make_mod_embed(modification, &message) {
                             say_into_chat(&message, "Unable to make an embed here.");
@@ -517,7 +519,6 @@ command!(linkmod(_context, message) {
             // At this point, it hasn't found an exact match,
             // so let's just make an embed with all the results it found
             if !make_search_results_embed(&message, returned_results.clone()) {
-
                 say_into_chat(&message, "Unable to make an embed of search results here.");
                 return Err(String::from("Couldn't make an embed of search results."));
             }
@@ -574,3 +575,21 @@ command!(modder(_context, message) {
         return Err(String::from("Invalid username."));
     }
 });
+
+// Tests {{{1
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_valid_modder() {
+        let modder = "Gangsir";
+        assert!(is_valid_modder(modder))
+    }
+
+    #[test]
+    fn check_invalid_modder() {
+        let modder = "soeinfosaesebfiasouebfaisb";
+        assert!(!is_valid_modder(modder))
+    }
+}

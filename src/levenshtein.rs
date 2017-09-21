@@ -1,4 +1,4 @@
-/// Calculates levenshtein distance between two strings, returns the
+/// Calculates levenshtein distance between two strings, returns the {{{1
 /// distance as usize.
 pub fn levenshtein(a: &str, b: &str) -> usize {
     let length_a = a.chars().count();
@@ -61,6 +61,22 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     result
 }
 
+/// Calculates levenshtein distance, but ignores case and some non-alphanumeric {{{1
+/// characters, such as apostrophes, dashes, and underscores.
+pub fn levenshtein_insensitive(a: &str, b: &str) -> usize {
+    let a_fixed = a.to_lowercase()
+        .replace("'", "")
+        .replace("-", " ")
+        .replace("_", " ");
+    let b_fixed = b.to_lowercase()
+        .replace("'", "")
+        .replace("-", " ")
+        .replace("_", " ");
+
+    levenshtein(&a_fixed, &b_fixed)
+}
+
+// Tests {{{1
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,6 +90,18 @@ mod tests {
     #[test]
     fn levenshtein_distance_calc() {
         let result = levenshtein("some string", "completely different");
-        assert!(result == 14);
+        assert_eq!(result, 14);
+    }
+
+    #[test]
+    fn levenshtein_insensitive_exact() {
+        let result = levenshtein_insensitive("some string", "so'me_stRIng");
+        assert_eq!(result, 0);
+    }
+
+    #[test]
+    fn levenshtein_insensitive_calc() {
+        let result = levenshtein_insensitive("some str'ing", "com'pleTELY-DIFf'erent");
+        assert_eq!(result, 14);
     }
 }
