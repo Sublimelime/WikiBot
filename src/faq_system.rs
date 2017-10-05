@@ -34,8 +34,11 @@ command!(faqs(_context, message) {
 
 /// Adds a faq to the list of current faqs. {{{1
 /// Can only be used by moderators.
-command!(faq_add(_context, message, _args, name: String, faq: String) {
+command!(faq_add(_context, message, args) {
     let guild_id = message.guild_id().unwrap();
+    let name = args.single::<String>().unwrap_or(String::new());
+    let faq = args.single::<String>().unwrap_or(String::new());
+
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
         send_error_embed_or_say(&message, &format!("I'm sorry, I didn't understand your input correctly.
@@ -177,9 +180,12 @@ command!(faq_deleteall(_context, message) {
 
 
 /// Changes the value of an existant faq. Administrators only. {{{1
-command!(faq_set(_context, message, _args, name: String, faq: String) {
-    // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
+command!(faq_set(_context, message, args) {
+    let name = args.single::<String>().unwrap_or(String::new());
+    let faq = args.single::<String>().unwrap_or(String::new());
     let guild_id = message.guild_id().unwrap();
+
+    // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
         send_error_embed_or_say(&message, format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help faq-set``` for info on how to format this command.",
