@@ -4,6 +4,7 @@ use atom_syndication::Feed;
 
 use reqwest;
 
+use serenity::framework::standard::CommandError;
 use serenity::Error;
 use serenity::model::Message;
 use serenity::utils::Colour;
@@ -54,19 +55,19 @@ command!(fff(_context, msg) {
                         return Ok(());
                     } else {
                         send_error_embed_or_say(&message, fail_message_rss);
-                        return Err(String::from(fail_message_rss));
+                        return Err(CommandError::from(fail_message_rss));
                     }
                 } else {
                     send_error_embed_or_say(&message, fail_message_rss);
-                    return Err(String::from(fail_message_rss));
+                    return Err(CommandError::from(fail_message_rss));
                 }
             } else {
                 send_error_embed_or_say(&message, fail_message);
-                return Err(String::from(fail_message));
+                return Err(CommandError::from(fail_message));
             }
         } else {
             send_error_embed_or_say(&message, fail_message);
-            return Err(String::from(fail_message));
+            return Err(CommandError::from(fail_message));
         }
     });
 });
@@ -102,11 +103,11 @@ command!(version(_context, msg) {
                 }
             } else {
                 say_into_chat(&message, fail_message);
-                return Err(String::from(fail_message));
+                return Err(CommandError::from(fail_message));
             }
         } else {
             say_into_chat(&message, fail_message);
-            return Err(String::from(fail_message));
+            return Err(CommandError::from(fail_message));
         }
         // Check that both the finds succesfully found what we were looking for
         if !latest_stable.is_empty() && !latest_experimental.is_empty() {
@@ -118,7 +119,7 @@ command!(version(_context, msg) {
             return Ok(());
         } else {
             say_into_chat(&message, fail_message);
-            return Err(String::from(fail_message));
+            return Err(CommandError::from(fail_message));
         }
     });
 });

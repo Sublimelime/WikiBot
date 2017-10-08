@@ -1,6 +1,7 @@
 use rand::{thread_rng, Rng};
 
 use serenity::utils::Colour;
+use serenity::framework::standard::CommandError;
 
 use std::process;
 use std::process::Command;
@@ -29,7 +30,7 @@ command!(search_api(_context, message) {
     // They should've provided an argument
     if modified_content.is_empty() {
         send_error_embed_or_say(&message, "Expected a search string.");
-        return Err(String::from("User did not provide search string."));
+        return Err(CommandError::from("User did not provide search string."));
     }
 
     // Fix the symbols in the url
@@ -97,11 +98,11 @@ command!(uptime(_context, message) {
                                                           ));
         } else {
             say_into_chat(&message, "Sorry, an error occured on my host.");
-            return Err(String::from("Unable to run free command."));
+            return Err(CommandError::from("Unable to run free command."));
         }
     } else {
         say_into_chat(&message, "Sorry, an error occured on my host.");
-        return Err(String::from("Unable to run uptime command."));
+        return Err(CommandError::from("Unable to run uptime command."));
     }
 });
 
@@ -113,7 +114,7 @@ command!(host(_context, message) {
     if let Ok(result) = Command::new("uptime").arg("-p").output() {
         uptime = String::from_utf8(result.stdout).unwrap();
     } else {
-        return Err(String::from("Unable to run uptime command."));
+        return Err(CommandError::from("Unable to run uptime command."));
     }
     let embed_result = message.channel_id.send_message(|a| a
                                                        .embed(|b| b
@@ -150,7 +151,7 @@ command!(page(_context, message) {
 
     if modified_content.is_empty() {
         send_error_embed_or_say(&message, "Expected a page to link.");
-        return Err(String::from("User did not provide page to link."));
+        return Err(CommandError::from("User did not provide page to link."));
     }
 
     modified_content = modified_content.replace(" ", "_");
@@ -174,7 +175,7 @@ command!(whois(_context, message) {
                                                        ));
     if let Err(_) = result {
         say_into_chat(&message, "Couldn't make an embed here.");
-        return Err(String::from("Failed to make an embed."));
+        return Err(CommandError::from("Failed to make an embed."));
     }
 });
 

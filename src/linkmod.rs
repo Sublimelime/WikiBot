@@ -6,6 +6,7 @@ use chrono::prelude::*;
 
 use serenity::model::Message;
 use serenity::utils::Colour;
+use serenity::framework::standard::CommandError;
 
 use std::io::Read;
 
@@ -476,7 +477,7 @@ command!(linkmod(_context, message) {
     // Check arg validity
     if request.is_empty() {
         send_error_embed_or_say(&message, "Expected a mod to search for.");
-        return Err(String::from("User didn't provide an argument."));
+        return Err(CommandError::from("User didn't provide an argument."));
     }
 
     // Make the mod api request
@@ -490,7 +491,7 @@ command!(linkmod(_context, message) {
                 let modification = parse_json_into_mod(&returned_results[0]);
                 if !make_mod_embed(modification, &message) {
                     say_into_chat(&message, "Unable to make an embed here.");
-                    return Err(String::from("Couldn't make an embed."));
+                    return Err(CommandError::from("Couldn't make an embed."));
                 } else {
                     return Ok(());
                 }
@@ -506,7 +507,7 @@ command!(linkmod(_context, message) {
                         // Got a match on this entry, so let's send it
                         if !make_mod_embed(modification, &message) {
                             say_into_chat(&message, "Unable to make an embed here.");
-                            return Err(String::from("Couldn't make an embed."));
+                            return Err(CommandError::from("Couldn't make an embed."));
                         } else {
                             return Ok(());
                         }
@@ -516,16 +517,16 @@ command!(linkmod(_context, message) {
             // so let's just make an embed with all the results it found
             if !make_search_results_embed(&message, returned_results.clone()) {
                 say_into_chat(&message, "Unable to make an embed of search results here.");
-                return Err(String::from("Couldn't make an embed of search results."));
+                return Err(CommandError::from("Couldn't make an embed of search results."));
             }
             return Ok(());
         } else {
             send_error_embed_or_say(&message, "The mod portal didn't return any matches for that query. :frowning:");
-            return Err(String::from("Didn't find any results for the request."));
+            return Err(CommandError::from("Didn't find any results for the request."));
         }
     } else {
         send_error_embed_or_say(&message, "Couldn't get a response back from the mod portal. :thinking:");
-        return Err(String::from("Failed to get a response back from the mod portal."));
+        return Err(CommandError::from("Failed to get a response back from the mod portal."));
     }
 });
 
@@ -550,15 +551,15 @@ command!(modder(_context, message) {
                 }
             } else {
                 send_error_embed_or_say(&message, "This user has not made any mods.");
-                return Err(String::from("User hasn't made any mods."));
+                return Err(CommandError::from("User hasn't made any mods."));
             }
         } else {
             send_error_embed_or_say(&message, "Couldn't find any results. The mod portal might be down.");
-            return Err(String::from("Couldn't reach the mod portal."));
+            return Err(CommandError::from("Couldn't reach the mod portal."));
         }
     } else {
         send_error_embed_or_say(&message, "Sorry, no modder by that username was found.");
-        return Err(String::from("Invalid username."));
+        return Err(CommandError::from("Invalid username."));
     }
 });
 

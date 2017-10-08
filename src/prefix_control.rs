@@ -2,13 +2,14 @@
 
 use constants::*;
 use common_funcs::*;
+use serenity::framework::standard::CommandError;
 
 /// Registers a prefix for the guild that it's used in. {{{1
 command!(register_prefix(_c, m, args) {
     let prefix = args.join(" ");
     if prefix.is_empty() {
         say_into_chat(&m, "Cannot set prefix to nothing, sorry.");
-        return Err(String::from("User did not provide a prefix to register to."));
+        return Err(CommandError::from("User did not provide a prefix to register to."));
     }
     {
         let mut prefixes = PREFIXES.lock().unwrap();

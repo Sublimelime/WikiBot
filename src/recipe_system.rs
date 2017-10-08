@@ -2,6 +2,7 @@ use json;
 use json::JsonValue;
 
 use serenity::utils::Colour;
+use serenity::framework::standard::CommandError;
 
 use std::fs::File;
 use std::io::Read;
@@ -40,7 +41,7 @@ command!(recipe(_context, message) {
         //Bail out if there's no argument
         if request.is_empty() {
             send_error_embed_or_say(&message, "You must provide the name of an item, process or entity here, it will be autocorrected if it's slightly off.");
-            return Err(String::from("Missing argument, failed."));
+            return Err(CommandError::from("Missing argument, failed."));
         }
         // Create a list of just keys
         let recipe_key_list: Vec<&str> = RECIPES.entries().map(|(key, _value)| {
@@ -54,7 +55,7 @@ command!(recipe(_context, message) {
         if dist >= DISTANCE_SENSITIVITY {
             send_error_embed_or_say(&message, "Sorry, I couldn't find any recipe for that request.
                                     Does the object you're asking for go by any other name?");
-            return Err(String::from("Missing recipe, failed."));
+            return Err(CommandError::from("Missing recipe, failed."));
         }
 
         // If it wasn't an exact match

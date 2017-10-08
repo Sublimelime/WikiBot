@@ -1,6 +1,8 @@
 use json::{self, JsonValue};
 
 use serenity::utils::Colour;
+use serenity::framework::standard::CommandError;
+use serenity::Error;
 use serenity::model::{Message, GuildId};
 
 use std::fs::{File, OpenOptions};
@@ -28,7 +30,10 @@ command!(faqs(_context, message) {
                                                        ));
     if let Err(error) = result {
         send_error_embed_or_say(&message, "Failed to get faq list. Either something went wrong, or no faqs are defined.");
-        return Err(format!("Got error sending list of faqs, error is: {:?}, parsed json is {}", error, parsed_json.dump()));
+        return Err(CommandError::from(&format!(
+                    "Got error sending list of faqs, error is: {:?}, parsed json is {}",
+                    error,
+                    parsed_json.dump())));
     }
 });
 
@@ -44,7 +49,7 @@ command!(faq_add(_context, message, args) {
         send_error_embed_or_say(&message, &format!("I'm sorry, I didn't understand your input correctly.
                                         Use ```{}help faq-add``` for info on how to format this command.",
                                         get_prefix_for_guild(&guild_id)));
-        return Err(String::from("Could not add due to missing quotes or invalid args."));
+        return Err(CommandError::from("Could not add due to missing quotes or invalid args."));
     }
     let mut parsed_json = get_faq_json(&guild_id, &message);
     let name = name.to_lowercase();
@@ -74,7 +79,7 @@ command!(faq_add(_context, message, args) {
     } else {
         send_error_embed_or_say(&message, "Cannot add, dictionary already contains an entry for that name.
                                  Try using ```faq-set``` instead, or removing it.");
-        return Err(String::from("Could not add due to an already existing key for provided faq."));
+        return Err(CommandError::from("Could not add due to an already existing key for provided faq."));
     }
 });
 
@@ -97,7 +102,7 @@ command!(faq_get(_context, message, _args) {
         return faqs(_context, message, _args);
     } else if parsed_json.is_empty() {
         send_error_embed_or_say(&message, "Sorry, no FAQs configured.");
-        return Err(String::from("No FAQs configured, cannot pick one."));
+        return Err(CommandError::from("No FAQs configured, cannot pick one."));
     }
 
     // Make lowercase
@@ -115,7 +120,7 @@ command!(faq_get(_context, message, _args) {
         say_into_chat(&message, &format!("I didn't find `{}`, but I did find the next closest FAQ, `{}`:", request, closest_match));
     } else if dist > DISTANCE_SENSITIVITY {
         send_error_embed_or_say(&message, &format!("I didn't find `{}`, and no other FAQ was similar enough.", request));
-        return Err(String::from("FAQ distance was too great from request, failing out..."));
+        return Err(CommandError::from("FAQ distance was too great from request, failing out..."));
     }
 
     // Determine if the message also has an associated image
@@ -191,7 +196,7 @@ command!(faq_set(_context, message, args) {
                                         Use ```{}help faq-set``` for info on how to format this command.",
                                         get_prefix_for_guild(&guild_id)
                                         ).as_str());
-        return Err(String::from("Could not set faq due to invalid args."));
+        return Err(CommandError::from("Could not set faq due to invalid args."));
     } else {
         let mut parsed_json = get_faq_json(&guild_id, &message);
         let name = name.to_lowercase();
@@ -220,7 +225,7 @@ command!(faq_set(_context, message, args) {
             }
         } else {
             send_error_embed_or_say(&message, "Cannot set, key not found in dictionary. Try using ```faq add``` instead.");
-            return Err(String::from("Could not set faq due to missing key."));
+            return Err(CommandError::from("Could not set faq due to missing key."));
         }
     }
 });
@@ -243,7 +248,7 @@ pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
         log_error!(
             "Error writing to json file, aborting with error: {:?}",
             error
-        );
+            );
     } else {
         log_info!("Wrote to json file: {}", faq_file);
     }
@@ -286,7 +291,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut file_handle = File::create(faq_file).expect("Could not create faqs file.");
             file_handle.write_all(b"{}").expect(
                 "Got error writing to newly created json file.",
-            ); //Write empty json object to it
+                ); //Write empty json object to it
 
             return JsonValue::new_object(); //Return empty database
         }
@@ -295,7 +300,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut data = String::new();
             file.read_to_string(&mut data).expect(
                 "Something went wrong reading the faqs file.",
-            );
+                );
 
             let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -306,7 +311,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
                     say_into_chat(
                         &message,
                         "Sorry, I couldn't read the database for this server.",
-                    );
+                        );
                     JsonValue::new_object()
                 }
             }
