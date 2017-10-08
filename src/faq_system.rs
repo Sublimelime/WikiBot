@@ -2,7 +2,6 @@ use json::{self, JsonValue};
 
 use serenity::utils::Colour;
 use serenity::framework::standard::CommandError;
-use serenity::Error;
 use serenity::model::{Message, GuildId};
 
 use std::fs::{File, OpenOptions};
@@ -41,8 +40,8 @@ command!(faqs(_context, message) {
 /// Can only be used by moderators.
 command!(faq_add(_context, message, args) {
     let guild_id = message.guild_id().unwrap();
-    let name = args.single::<String>().unwrap_or(String::new());
-    let faq = args.single::<String>().unwrap_or(String::new());
+    let name = args.single_quoted::<String>().unwrap_or(String::new());
+    let faq = args.single_quoted::<String>().unwrap_or(String::new());
 
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
@@ -186,8 +185,8 @@ command!(faq_deleteall(_context, message) {
 
 /// Changes the value of an existant faq. Administrators only. {{{1
 command!(faq_set(_context, message, args) {
-    let name = args.single::<String>().unwrap_or(String::new());
-    let faq = args.single::<String>().unwrap_or(String::new());
+    let name = args.single_quoted::<String>().unwrap_or(String::new());
+    let faq = args.single_quoted::<String>().unwrap_or(String::new());
     let guild_id = message.guild_id().unwrap();
 
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise

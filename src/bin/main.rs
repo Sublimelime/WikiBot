@@ -2,17 +2,38 @@ extern crate serenity;
 #[macro_use]
 extern crate wikibot;
 
-use serenity::client::Client;
-use serenity::model::{UserId, Permissions};
-use serenity::framework::{help_commands, DispatchError};
+use serenity::prelude::*;
+use serenity::model::*;
+use serenity::model::event::*;
+use serenity::framework::standard::*;
 
 use std::fs::File;
 use std::io::prelude::*;
 
 use wikibot::commands::*;
 use wikibot::common_funcs::*;
-use wikibot::constants;
-use wikibot::constants::install_prefixes;
+use wikibot::constants::{self, install_prefixes};
+
+//Eventhandler setup {{{1
+struct Handler;
+
+impl EventHandler for Handler {
+    // Ready/Resume handlers {{{2
+    fn on_ready(&self, ctx: Context, ready: Ready) {
+        log_status!("{} is connected!", ready.user.name);
+        ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
+        // List current servers into log
+        println!("{} is now online in the following guilds:", ready.user.name);
+        for entry in ready.guilds.iter() {
+            println!("ID: {}", entry.id());
+        }
+    }
+
+    fn on_resume(&self, ctx: Context, _res: ResumedEvent) {
+        log_status!("Resumed after a disconnect.");
+        ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
+    }
+}
 
 /// Main function. {{{1
 fn main() {
@@ -27,7 +48,7 @@ fn main() {
     let token = token.trim(); //Remove the newline from the end of the string if present
 
     // Login with a bot token from the environment
-    let mut client = Client::new(&token[..]);
+    let mut client = Client::new(&token[..], Handler);
     log_init!("Created client with token successfully.");
 
     // Create defined perms for what is a person of power
@@ -40,8 +61,8 @@ fn main() {
 
 
     // Configure client with framework {{{2
-    client.with_framework(move |f| {
-        f.simple_bucket("slowly", 5)
+    client.with_framework(StandardFramework::new()
+            .simple_bucket("slowly", 5)
             .simple_bucket("super-slowly", 10)
             .simple_bucket("occasionally", 20)
 
@@ -58,6 +79,7 @@ fn main() {
                        })
                        .ignore_bots(true) //Ignore other bots
                        .ignore_webhooks(true)
+                       .case_insensitivity(true)
                        .allow_dm(true)
                        .allow_whitespace(true)
                        .on_mention(true) // Allow mentioning the bot to use commands
@@ -193,7 +215,6 @@ fn main() {
                                           .example("steam This is the ratio for steam:.....")
                                           .guild_only(true)
                                           .min_args(2)
-                                          .use_quotes(true)
                                           .max_args(2)
                                           .help_available(true)
                                           .exec(faq_add))
@@ -227,9 +248,7 @@ fn main() {
                                           .help_available(true)
                                           .example("steam This is the new ratio for steam:....")
                                           .guild_only(true)
-                                          .min_args(2)
-                                          .use_quotes(true)
-                                          .max_args(2)
+                                          .num_args(2)
                                           .required_permissions(is_powerful_perms)
                                           .exec(faq_set))
                                  )
@@ -247,7 +266,7 @@ fn main() {
                                          DispatchError::BlockedUser | DispatchError::BlockedGuild => {
                                              log_info!("Ignoring command by blocked user/guild...");
                                          }
-                                         DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners | DispatchError::CheckFailed => {
+                                         DispatchError::LackOfPermissions(_) | DispatchError::OnlyForOwners | DispatchError::CheckFailed(_) => {
                                              send_error_embed_or_say(&msg, "Sorry, you don't have permission to do that.");
                                          }
                                          DispatchError::OnlyForDM | DispatchError::OnlyForGuilds => {
@@ -259,7 +278,7 @@ fn main() {
                                                                                    but you sent {}.", min, given).as_str());
                                          }
                                          _ => log_error!("Got unknown dispatch error.")
-                                     }
+                                     };
                                  })
         // BEFORE/AFTER {{{3
         .before(|_, msg, command_name| {
@@ -287,24 +306,7 @@ fn main() {
                     msg.author.name,
                     msg.author.discriminator);
             }
-        })
-    });
-
-    // Ready/Resume handlers {{{2
-    client.on_ready(|ctx, ready| {
-        log_status!("{} is connected!", ready.user.name);
-        ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
-        // List current servers into log
-        println!("{} is now online in the following guilds:", ready.user.name);
-        for entry in ready.guilds.iter() {
-            println!("ID: {}", entry.id());
-        }
-    });
-
-    client.on_resume(|ctx, _res| {
-        log_status!("Resumed after a disconnect.");
-        ctx.set_game_name(format!("@{} help for help!", constants::BOT_NAME).as_str());
-    });
+        }));
 
     log_init!("Configured bot succesfully.");
     // Init {{{2
