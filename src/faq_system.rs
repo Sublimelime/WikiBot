@@ -247,7 +247,7 @@ pub fn write_faq_json(value: JsonValue, guild: &GuildId) {
         log_error!(
             "Error writing to json file, aborting with error: {:?}",
             error
-            );
+        );
     } else {
         log_info!("Wrote to json file: {}", faq_file);
     }
@@ -290,7 +290,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut file_handle = File::create(faq_file).expect("Could not create faqs file.");
             file_handle.write_all(b"{}").expect(
                 "Got error writing to newly created json file.",
-                ); //Write empty json object to it
+            ); //Write empty json object to it
 
             return JsonValue::new_object(); //Return empty database
         }
@@ -299,7 +299,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
             let mut data = String::new();
             file.read_to_string(&mut data).expect(
                 "Something went wrong reading the faqs file.",
-                );
+            );
 
             let data = data.trim(); //Remove the newline from the end of the string if present
 
@@ -310,7 +310,7 @@ pub fn get_faq_json(guild: &GuildId, message: &Message) -> JsonValue {
                     say_into_chat(
                         &message,
                         "Sorry, I couldn't read the database for this server.",
-                        );
+                    );
                     JsonValue::new_object()
                 }
             }
