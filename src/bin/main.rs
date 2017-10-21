@@ -59,7 +59,6 @@ fn main() {
     install_prefixes();
     log_init!("Configured prefixes from file.");
 
-
     // Configure client with framework {{{2
     client.with_framework(StandardFramework::new()
             .simple_bucket("slowly", 5)
@@ -137,7 +136,7 @@ fn main() {
                           .command("page", |c|
                                    c.desc("Takes a page name, and prints out a link to the wiki of that page.
                                    \nIf you wish to keep talking after this command, use two pipes \"||\" to end the command and begin your chat.")
-                                   .known_as("link")
+                                   .batch_known_as(vec!["link", "wiki"])
                                    .example("iron plate")
                                    .help_available(true)
                                    .exec(page))

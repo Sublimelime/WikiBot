@@ -40,8 +40,18 @@ command!(faqs(_context, message) {
 /// Can only be used by moderators.
 command!(faq_add(_context, message, args) {
     let guild_id = message.guild_id().unwrap();
-    let name = args.single_quoted::<String>().unwrap_or(String::new());
-    let faq = args.single_quoted::<String>().unwrap_or(String::new());
+    let mut args_in_quotes: Vec<String> = args.multiple_quoted::<String>().unwrap_or(Vec::new());
+
+    //Ensure they sent two arguments
+    if args_in_quotes.len() < 2 {
+        send_error_embed_or_say(&message, &format!("I'm sorry, I didn't understand your input correctly.
+                                        Use ```{}help faq-add``` for info on how to format this command.",
+                                        get_prefix_for_guild(&guild_id)));
+        return Err(CommandError::from("Could not add due to missing quotes or invalid args."));
+    }
+
+    let name = args_in_quotes.remove(0);
+    let faq = args_in_quotes.remove(0);
 
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {
@@ -185,9 +195,20 @@ command!(faq_deleteall(_context, message) {
 
 /// Changes the value of an existant faq. Administrators only. {{{1
 command!(faq_set(_context, message, args) {
-    let name = args.single_quoted::<String>().unwrap_or(String::new());
-    let faq = args.single_quoted::<String>().unwrap_or(String::new());
+    let mut args_in_quotes: Vec<String> = args.multiple_quoted::<String>().unwrap_or(Vec::new());
     let guild_id = message.guild_id().unwrap();
+
+    //Ensure they sent two arguments
+    if args_in_quotes.len() < 2 {
+        send_error_embed_or_say(&message, &format!("I'm sorry, I didn't understand your input correctly.
+                                        Use ```{}help faq-add``` for info on how to format this command.",
+                                        get_prefix_for_guild(&guild_id)));
+        return Err(CommandError::from("Could not add due to missing quotes or invalid args."));
+    }
+
+
+    let name = args_in_quotes.remove(0);
+    let faq = args_in_quotes.remove(0);
 
     // Reject if they don't use quotes, since the faq wouldn't be added correctly otherwise
     if message.content_safe().matches("\"").count() != 4 || name.is_empty() || faq.is_empty() {

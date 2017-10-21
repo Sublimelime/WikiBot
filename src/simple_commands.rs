@@ -147,6 +147,8 @@ command!(page(_context, message) {
         modified_content = fix_message(message.content_safe(), "page");
     } else if message.content_safe().starts_with(format!("{}link", server_prefix).as_str()) {
         modified_content = fix_message(message.content_safe(), "link");
+    } else if message.content_safe().starts_with(format!("{}wiki", server_prefix).as_str()) {
+        modified_content = fix_message(message.content_safe(), "wiki");
     }
 
     if modified_content.is_empty() {
